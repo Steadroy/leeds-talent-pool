@@ -1,0 +1,24 @@
+{
+  "name": "leeds-talent-pool",
+  "version": "0.0.1",
+  "last_updated": "2014-09-08T17:40:33+01:00",
+  "description": "Leeds Talent Pool child theme of University Wordpress theme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/essl-pvac/leeds-talent-pool.git"
+  },
+  "author": "Peter Edwards <p.l.edwards@leeds.ac.uk>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/essl-pvac/leeds-talent-pool/issues"
+  },
+  "homepage": "https://github.com/essl-pvac/leeds-talent-pool",
+  "devDependencies": {
+    "grunt": "~0.4.2",
+    "grunt-contrib-less": "*",
+    "grunt-contrib-concat": "*",
+    "grunt-contrib-uglify": "*",
+    "grunt-contrib-watch": "*",
+    "grunt-contrib-jshint": "*"
+  }
+}
