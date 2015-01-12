@@ -6,12 +6,22 @@ module.exports = function(grunt) {
 		less: {
 			themecss: {
 				options: {
-					paths: ["ess"],
+					paths: ["less"],
 					cleancss:true
 				},
 				files: {
-					"style.css": "less/style.less"
+					"less/style.min.css": "less/style.less"
 				}
+			}
+		},
+		concat: {
+			themecss: {
+				options: {
+					stripBanners: true,
+					banner: "/*!\nTheme Name: <%= pkg.themename %>\nTheme URI: <%= pkg.homepage %>\nDescription: <%= pkg.description %>\nTemplate: uol-wordpress-theme\nVersion: <%= pkg.version %>\nAuthor: <%= pkg.author %>\n*/\n"
+				},
+				src: ['less/style.min.css'],
+				dest: 'style.css'
 			}
 		},
 		jshint: {
@@ -26,16 +36,6 @@ module.exports = function(grunt) {
 				},
 				files: {
 					'js/scripts.min.js': ['js/scripts.js']
-				}
-			},
-			adminjs: {
-				options: {
-					// the banner is inserted at the top of the output
-					banner: '/*!\n * Leeds Talent Pool theme javascript for Wordpress Dashboard\n * @author <%= pkg.author %>\n * @version <%= pkg.version %>\n * generated: <%= grunt.template.today("dd-mm-yyyy") %>\n */\n',
-					mangle: false
-				},
-				files: {
-					'js/admin.min.js': ['js/admin.js']
 				}
 			}
 		},
@@ -64,7 +64,7 @@ module.exports = function(grunt) {
 	// js compilation task
 	grunt.registerTask('js', ['jshint', 'uglify']);
 	// less compilation task
-	grunt.registerTask('css', ['less']);
+	grunt.registerTask('css', ['less', 'concat:themecss']);
 	// build task
 	grunt.registerTask('build', ['css', 'js']);
 };
