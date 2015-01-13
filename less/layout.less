@@ -1,0 +1,349 @@
+/*  layout.less */
+
+// base layout (based on leeds toolkit)
+// --------------------------------------------------
+html {
+    overflow-y:scroll;
+}
+
+body {
+    margin:0 auto;
+    padding:0 10px;
+    width:100%;
+    max-width:960px;
+}
+
+// The black header area
+// --------------------------------------------------
+.header {
+    height:89px;
+    h2 {
+        position:relative;
+        clear:both;
+        float:left;
+        left:10px;
+        top:-5px;
+        margin-bottom:10px;
+        margin-top:0;
+    }
+    #logo {
+        display:block;
+        float:right;
+        height:54px;
+        right:10px;
+        top:17px;
+        margin:0;
+        position:relative;
+        .hide-text;
+        width:183px;
+    }
+}
+
+// The content area below the black heading
+// --------------------------------------------------
+.content {
+    .clearfix;
+    padding:10px;
+    position:relative;
+    width:100%;
+}
+
+// main tabbed navigation
+// --------------------------------------------------
+.nav-main {
+    width:100%;
+}
+
+// breadcrumbs
+// --------------------------------------------------
+.breadcrumbs {
+    width:700px;
+}
+
+// The site sidebar - right hand sidebar
+// --------------------------------------------------
+.site-sidebar {
+    float:right;
+    min-height:780px;
+    padding:0 20px 1em 20px;
+    position:relative;
+    width:180px;
+    .right-menu {
+        padding-top:1em;
+        clear:both;
+    }
+}
+
+// The section sidebar - left hand sidebar
+// --------------------------------------------------
+.section-sidebar {
+    clear:left;
+    float:left;
+    margin:1em 20px 0 0;
+    position:relative;
+    width:160px;
+}
+
+// site search box
+// --------------------------------------------------
+.site-search {
+    width:180px;
+    float:right;
+    padding-top:1px;
+    margin:0.8em 0 1em 0;
+    h4 {
+        display:none;
+    }
+    input {
+        .rounded(3px);
+        padding:2px;
+        &.searchinput {
+            width:130px;
+            .transition();
+        }
+        &.searchsubmit {
+            width:40px;
+            border:1px solid @searchInputBorder;
+            .rounded(3px);
+            float:right;
+        }
+    }
+}
+
+// search box inside site sidebar
+// --------------------------------------------------
+.site-sidebar .site-search {
+    display:block !IMPORTANT;
+    margin:0;
+    padding:0;
+    float:left;
+    width:180px;
+    h4 {
+        display:block;
+        margin:0.8em 0 1em 0;
+        line-height:1.1em;
+    }
+    input {
+        &.searchinput {
+            width:130px;
+        }
+        &.searchsubmit {
+            width:40px;
+        }
+    }
+}
+
+// hide regular search box if the site sidebar is present
+// --------------------------------------------------
+.sidebars-site,
+.sidebars-both {
+    .site-search {
+        display:none;
+    }
+}
+
+// Main content area
+// --------------------------------------------------
+.content-main {
+    float:left;
+    margin-bottom:2em;
+    padding:0;
+    position:relative;
+
+    ul {
+        margin:1em 0 1em 20px;
+        padding:0;
+    }
+
+    table {
+        margin:1em 0;
+    }
+
+    #nav-below {
+        clear:both;
+        padding-top:1em;
+    }
+}
+
+// Footer area
+// --------------------------------------------------
+.content-info {
+    clear:both;
+    padding-top:1em;
+    margin:0 auto;
+    width:100%;
+}
+
+// Different Page Layouts
+// --------------------------------------------------
+.sidebars-site {
+    .content-main {
+        width:700px;
+        .widgetised-page {
+            width:720px;
+            margin-top:1em;
+        }
+
+    }
+
+    .section-sidebar {
+        display:none;
+    }
+}
+
+.sidebars-section {
+    .content-main {
+        float:right;
+        width:760px;
+    }
+}
+
+.sidebars-both {
+    .content-main {
+        width:520px;
+    }
+}
+
+.sidebars-none {
+    .content-main {
+        width:940px;
+
+        .widgetised-page {
+            width:940px;
+        }
+    }
+}
+
+.sidebars-site,
+.sidebars-both {
+    .nav-main {
+        width:720px;
+    }
+    .site-search {
+        display:none;
+    }
+}
+
+.sidebars-site,
+.sidebars-none {
+    .section-sidebar {
+        display:none;
+    }
+}
+
+.sidebars-none,
+.sidebars-section {
+    .nav-main {
+        width:940px;
+    }
+
+    .site-sidebar {
+        display:none;
+    }
+
+}
+
+.page-template-uol_home-php,
+.page-template-uol_research-php {
+    .breadcrumbs {
+        display:none;
+    }
+}
+
+// inline columns
+// --------------------------------------------------
+.col1, .col2, .col3 {
+    .left;
+}
+.col1 {
+    width:160px;
+}
+.col2 {
+    width:340px;
+}
+.col3 {
+    width:520px;
+}
+.col1r, .col2r, .col3r {
+    float:right;
+}
+.col1r {
+    width:220px;
+}
+.col2r {
+    width:400px;
+}
+.col3r {
+    width:580px;
+}
+
+// homepage widgets
+// --------------------------------------------------
+.homepage-widget
+{
+    float:left;
+    margin:0 20px 1em 0;
+}
+
+.homepage-widget.col1
+{
+    width:160px;
+}
+
+.homepage-widget.col2
+{
+    width:340px;
+}
+
+.homepage-widget.col3
+{
+    width:520px;
+}
+
+.homepage-widget.col4
+{
+    width:700px;
+}
+
+.homepage-widget.col1w
+{
+    width:200px;
+    margin-right:0;
+    float:right;
+}
+
+.homepage-widget.col2w
+{
+    width:380px;
+    margin-right:0;
+    float:right;
+}
+
+.homepage-widget.col3w
+{
+    width:560px;
+    margin-right:0;
+    float:right;
+}
+
+.homepage-widget.col4w
+{
+    width:740px;
+    margin-right:0;
+    float:right;
+}
+
+.homepage-widget.col5
+{
+    width:930px;
+    margin-right:0;
+}
+
+// margins/padding for posts
+// --------------------------------------------------
+div.post, div.item
+{
+    margin-bottom:.5em;
+    padding-bottom:.5em;
+}
+

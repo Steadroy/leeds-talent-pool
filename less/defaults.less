@@ -1,0 +1,121 @@
+/**
+ * default colours and backgrounds
+ */
+html {
+    background:@bgColour url('@{html_bg}') repeat-x;
+    color:@textColour;
+}
+body {
+    background:transparent url('@{body_bg}') no-repeat right 101px;
+    color:@textColour;
+}
+.header {
+	#logo {
+    	background: url('@{logo_bg}') no-repeat;
+        img {
+            display:none;
+        }
+    }
+    h2 {
+    	a {
+    		color:@mainHeadingsTextColour;
+    	}
+    }
+}
+.sidebar-corporate {
+    .site-sidebar {
+        background: url('@{corp_sidebar_bg}') no-repeat;
+    }
+}
+.content {
+	background:@bgColour;
+}
+.nav-main {
+    background-color:@mainNavBgColour;
+    li {
+    	border-left:1px solid @mainNavSepLeft;
+        border-right:1px solid @mainNavSepRight;
+
+        a {
+            color:@mainNavTextColour;
+        }
+		a:hover,
+		&.active a,
+        &.current-menu-item a,
+        &.current-menu-item a:visited,
+        &.current-menu-item a:active,
+        &.current-page-ancestor a,
+        &.current-post-ancestor a,
+        &.current-menu-parent a {
+	        background:@mainNavBgActive;
+	        color:@mainNavTextActive;
+	    }
+    }
+}
+.site-search {
+    input {
+        &.searchinput {
+            border:1px solid @searchInputBorder;
+            &:focus {
+                border-color: @searchInputBorderFocus;
+                .inner-shadow(0, 0, 6, fade(@searchInputBorderFocus, 50%));
+            }
+        }
+
+    }
+}
+.content-info {
+    border-top: 1px solid @footerTopBorder;
+    li {
+        a {
+            border-right:1px solid @footerLinkSeparator;
+        }
+    }
+}
+.sidebar-corporate, .sidebar-plain {
+    .site-sidebar {
+        ul {
+            border-top: 1px solid @siteSidebarSepTop;
+
+            li a {
+                border-bottom: 1px solid @siteSidebarSepTop;
+                border-top: 1px solid @siteSidebarSepBottom;
+            }
+        }
+
+        ul > li:last-child {
+            border-bottom: 1px solid @siteSidebarSepBottom;
+        }
+
+    }
+}
+
+p.author, p.metafoot
+{
+    color: @metaFontColor;
+}
+div.post, div.item
+{
+    border-bottom:2px solid @postSeparator;
+}
+.news-archive.highlighted .news, .event-archive.highlighted .event, .top-bits {
+    background:@neHighlightBg;
+}
+.news-archive.n-page .news, .event-archive.n-page .event
+{
+    border-bottom:1px solid @neSeparator;
+}
+
+table {
+	background-color: @tableBackground;
+    border: 1px solid @tableBorder;
+
+    th {
+        background-color:@tableHeaderBackground;
+        border-bottom: 1px solid @tableBorder;
+    }
+
+    td {
+        border:1px solid @tableBorder;
+    }
+}
