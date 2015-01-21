@@ -23,10 +23,10 @@
     <link rel="stylesheet" href="<?php echo get_stylesheet_uri(); ?>" />
     
     <!-- dynamic styles -->
-    <?php echo uol_get_dynamic_styles(); ?>
+    <?php //echo uol_get_dynamic_styles(); ?>
 
     <!-- dynamic scripts -->
-    <?php echo uol_get_dynamic_scripts(); ?>
+    <?php //echo uol_get_dynamic_scripts(); ?>
 
     <?php wp_head(); ?>
 
