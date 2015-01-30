@@ -15,7 +15,7 @@ if ( ! class_exists( 'ltp_actions' ) ) {
 		 */
 		public static function register()
 		{
-
+			
 		}
 
 		/**
