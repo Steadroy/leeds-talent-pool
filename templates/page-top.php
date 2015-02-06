@@ -32,23 +32,9 @@ $theme_options = get_uol_theme_options();
             'depth' => 1
         ) ); ?>
 
-        <div class="site-sidebar">
-            <div class="site-sidebar-content">
-            <?php 
-            if ( is_wpp() ) {
-                print('wppuser sidebar');
-            } elseif ( is_student() ) {
-                print('student sidebar');
-            } else {
-                dynamic_sidebar('right-menu');
-            }
-            ?>
-            </div>
-        </div>
-        
         <div class="section-sidebar nav">
             <div class="section-sidebar-content">
-
+            <?php ltp_sidebars::sidebar(); ?>
             </div>
         </div>
 

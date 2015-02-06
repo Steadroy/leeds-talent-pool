@@ -59,6 +59,17 @@ if ( ! class_exists( 'ltp_options' ) ) {
 				)
 			);
 			add_settings_field(
+				'builder_page_id', 
+				'Profile builder page', 
+				array(__CLASS__, 'ltp_setting_page_select'), 
+				'ltp_options', 
+				'ltp_general-options',
+				array(
+					'fieldname' => 'builder_page_id',
+					'desc' => 'Select a page to use as the Profile Builder page (should use the profile builder page template)'
+				)
+			);
+			add_settings_field(
 				'wpp_url',
 				'WPP Authentication API URL',
 				array(__CLASS__, 'ltp_setting_text'),

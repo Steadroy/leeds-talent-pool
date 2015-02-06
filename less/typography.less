@@ -1,0 +1,118 @@
+/* typography.less */
+
+// type settings, font sizes, etc.
+// --------------------------------------------------
+body {
+    #font > .sans-serif();
+}
+.header {
+	h2 {
+		font-family:@mainHeadingsFontFamily;
+        font-size:2em;
+        line-height:1em;
+        a {
+        	text-decoration:none;
+        }
+	}
+}
+.nav-main {
+	li {
+		a {
+			font-family:@mainNavFontFamily;
+            text-decoration:none;
+            text-transform:uppercase;
+		}
+	}
+}
+.breadcrumbs {
+    font-size:.75em;
+}
+.content h1 {
+    margin:0;
+    padding:0;
+}
+.content-main {
+    h2 {
+        font-size:2em;
+        line-height:1em;
+        margin:.5em 0;
+        width:100%;
+    }
+}
+.content-info {
+    font-size:.833em;
+}
+
+h1 {
+    font-family:@mainHeadingsFontFamily;
+    font-size:2em;
+    font-weight:400;
+    line-height:24px;
+}
+
+h1 a {
+/* this is the page header - colours are set in the theme options */
+    display:block;
+    text-decoration:none;
+    padding:11px 0 11px 16px;
+}
+
+h1 a:hover {
+    .transition(all, .2s, linear);
+}
+
+h2,h3,h4,h5,h6 {
+    font-family:@serifFontFamily;
+    font-weight:400;
+}
+
+h2 {
+    font-size:1.33333em; //24px24*1.125
+    line-height:1.125em;
+    margin:1em 0;
+}
+
+h3 {
+    font-size:1.3em;
+    line-height:1em;
+    margin-bottom:1em;
+}
+
+h4 {
+    font-size:1.1667em;
+    line-height:1.2857em;
+    margin:1.2857em 0;
+}
+
+p {
+    font-size:1em;
+    margin:1.5em 0;
+}
+
+h4.information {
+    padding-top:15px;
+    width:180px;
+    border-top: 1px solid #fff;
+}
+
+h4.related-info
+{
+    font:1.1667em @serifFontFamily;
+    line-height:1.286em;
+    margin:.75em 0;
+}
+
+.content-main, .content-info {
+    a, a:visited {
+        text-decoration:none;
+    }
+}
+
+p.author, p.metafoot
+{
+    font-size:.9em;
+    margin-top:0;
+}
+sup {
+    vertical-align:super;
+}

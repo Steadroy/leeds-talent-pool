@@ -1,0 +1,292 @@
+@form-bg: #faf9f5;
+@form-text: #666;
+@meter: #999;
+@border: #c8c8c5;
+@button: #ccc;
+@button-hover: #aaa;
+@button-text: #666;
+@button-text-hover: #fff;
+@input-bg: #fff;
+@input-border: #666;
+@label-bg: #eee;
+
+.rounded-top(@radius: 4px){
+	-webkit-border-top-right-radius: @radius;
+	-webkit-border-top-left-radius: @radius;
+	-moz-border-radius-topright: @radius;
+	-moz-border-radius-topleft: @radius;
+	border-top-right-radius: @radius;
+	border-top-left-radius: @radius;
+	-moz-background-clip: padding; -webkit-background-clip: padding-box; background-clip: padding-box; 
+}
+.rounded-bottom(@radius: 4px){
+	-webkit-border-bottom-right-radius: @radius;
+	-webkit-border-bottom-left-radius: @radius;
+	-moz-border-radius-bottomright: @radius;
+	-moz-border-radius-bottomleft: @radius;
+	border-bottom-right-radius: @radius;
+	border-bottom-left-radius: @radius;
+	-moz-background-clip: padding; -webkit-background-clip: padding-box; background-clip: padding-box; 
+}
+.section-sidebar {
+	.ltp-menu {
+		li {
+			a {
+				padding:1em;
+				background:@button;
+				color:@button-text;
+				font-size:1.2em;
+				&:before {
+					top:1.5em;
+					border-left-color:@button-text;
+				}
+				&:hover,
+				&.active {
+					background:@button-hover;
+					color:@button-text-hover;
+					&:before {
+						border-left-color:@button-text-hover;
+					}
+				}
+			}
+			&:first-child a {
+				.rounded-top();
+			}
+			&:last-child a {
+				.rounded-bottom();
+			}
+			
+		}
+	}
+}
+.sidebars-section {
+	.content-main {
+		margin-top:2em;
+		padding:1%;
+		width:79%;
+		background-color:@form-bg;
+		.ltp-profile-builder {
+			color:@form-text;
+			p.compulsory {
+				font-style:italic;
+				&:before {
+					color: @button;
+					content: "\f155";
+					display: inline-block;
+					-webkit-font-smoothing: antialiased;
+					font: normal 20px/1 'dashicons';
+					vertical-align: top;
+				}
+			}
+			.section {
+				border-top:1px solid @border;
+				margin-top:1em;
+				.clearfix;
+				padding:0 0 1em 0;
+				&.sticky {
+					background-color:@form-bg;
+					z-index:10000;
+					margin-top:0;
+					border-top:0;
+					width:740px;
+					padding-right:12px;
+					h3 {
+						margin-top:0;
+					}
+				}
+
+			}
+			h3 {
+				clear:both;
+				padding-top:1em;
+			}
+			.completion-meter {
+				background:#fff;
+				border:1px solid @meter;
+				width:100%;
+				height:2em;
+				position:relative;
+				margin-bottom:1em;
+				span {
+					position:absolute;
+					left:0;
+					top:0;
+					width:1em;
+					height:2em;
+					background:@meter;
+				}
+			}
+			a#insert-media-button,
+			button.ppt-button,
+			button.ppt-media-single-image,
+			button.ppt-media-file {
+				border:0;
+				.rounded(4px);
+				background-color:@button;
+				color:@button-text;
+				&:hover {
+					background:@button-hover;
+					color:@button-text-hover;
+				}
+			}
+			button.ppt-media-single-image,
+			button.ppt-button,
+			button.ppt-media-file {
+				padding:0.5em;
+				font-size:1.2em;
+				margin-right:1em;
+			}
+			input[type=text],
+			textarea {
+				font-family: @sansFontFamily;
+				padding:0.2em;
+				background:@input-bg;
+				border:1px solid @input-border;
+				color:@form-text;
+				outline:none;
+			}
+			textarea {
+				width:96%;
+			}
+			input[type=text] {
+				width:45%;
+				float:left;
+				margin-right:2%;
+				margin-bottom:1em;
+				padding:1%;
+			}
+			.select-wrapper{
+				width: 31.5%;
+				float:left;
+				margin-right:1%;
+				.select-bg {
+					background: @button;
+					width:100%;
+					overflow:hidden;
+					position:relative;
+					&:before {
+						position:absolute;
+						top:0;
+						right:0;
+						content: "\f140";
+						display:block;
+						width:1em;
+						height:1em;
+						background:@button-hover;
+						color:@button-text;
+						font: normal 28px/1 'dashicons';
+					}
+					select{
+						-webkit-appearance: none;
+						padding:.2em 1%;
+						border: 0;
+						border-radius: 0;
+						background:transparent;
+						width:115%;
+						position:relative;
+						option {
+							padding:.2em;
+							background:@button;
+							&:hover,
+							&:active {
+								background:@button-hover;
+								color:@button-text-hover;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+.checkbox-list {
+	height:15em;
+	width:96%;
+	input[type=checkbox] {
+		visibility:hidden;
+	}
+	label {
+		border-style:solid;
+		border-color: @border;
+		background:@label-bg;
+		border-width:1px 2px 1px 2px;
+		display:block;
+		cursor: pointer;
+		position:relative;
+		padding-left:2em;
+		line-height:2em;
+		&:first-child {
+			border-top-width:2px;
+		}
+		&:last-child {
+			border-bottom-width:2px;
+		}
+		&:before {
+			width:1em;
+			height:1em;
+			position:absolute;
+			left:0;
+			top:0;
+			color:transparent;
+			content: "\f147";
+			display:block;
+			background:@input-bg;
+			border-right:2px solid @border;
+			font: normal 28px/1 'dashicons';
+			-webkit-font-smoothing: antialiased;
+		}
+		&:hover {
+			background-color:@button;
+			&::before {
+				color:@button;
+			}
+		}
+		&.active {
+			background-color:@button-hover;
+			color:@button-text-hover;
+			&::before,
+			&:hover::before {
+				color:@button-text;
+			}
+		}
+	}
+}
+.ppt-media-selection-control,
+.ppt-media-selection-button,
+.description {
+  clear: both;
+}
+.ppt-media-selection-preview.ppt-preview-multiple .ppt-image-container {
+  cursor: move;
+}
+.ppt-media-selection-preview .ppt-image-container {
+  padding: 10px;
+  float: left;
+}
+.ppt-media-selection-preview .ppt-image-container div.ppt-image-inner {
+  position: relative;
+}
+.ppt-media-selection-preview .ppt-image-container div.ppt-image-inner a.ppt-remove-image {
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 5px;
+  z-index: 999;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+}
+.ppt-media-selection-preview .ppt-image-container div.ppt-image-inner:hover a.ppt-remove-image {
+  display: inline-block;
+}
+.ppt-media-selection-preview.multiple div.ppt-image-container {
+  cursor: move;
+}
+a.ppt-remove-image,
+a.ppt-remove-file {
+  font-family: 'dashicons';
+  font-size: 30px;
+  line-height: 30px;
+  text-decoration: none;
+  cursor: pointer;
+}

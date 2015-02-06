@@ -7,7 +7,7 @@ module.exports = function(grunt) {
 			themecss: {
 				options: {
 					paths: ["less"],
-					cleancss:true
+					compress:true
 				},
 				files: {
 					"less/style.min.css": "less/style.less"
@@ -22,10 +22,14 @@ module.exports = function(grunt) {
 				},
 				src: ['less/style.min.css'],
 				dest: 'style.css'
+			},
+			themejs: {
+				src: ['bower_components/people-post-type/js/profile.js', 'bower_components/jquery-sticky/jquery.sticky.js', 'bower_components/jScrollPane/script/jquery.mousewheel.js', 'bower_components/jScrollPane/script/jquery.jscrollpane.js','js/scripts.js'],
+				dest: 'scripts.js'
 			}
 		},
 		jshint: {
-			all: ['Gruntfile.js', 'js/admin.js', 'js/scripts.js']
+			all: ['Gruntfile.js', 'js/scripts.js']
 		},
 		uglify: {
 			themejs: {
@@ -35,7 +39,7 @@ module.exports = function(grunt) {
 					mangle: false
 				},
 				files: {
-					'js/scripts.min.js': ['js/scripts.js']
+					'scripts.min.js': ['scripts.js']
 				}
 			}
 		},
@@ -62,7 +66,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('default', ['watch']);
 
 	// js compilation task
-	grunt.registerTask('js', ['jshint', 'uglify']);
+	grunt.registerTask('js', ['jshint', 'concat:themejs', 'uglify']);
 	// less compilation task
 	grunt.registerTask('css', ['less', 'concat:themecss']);
 	// build task

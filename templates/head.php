@@ -20,7 +20,7 @@
 	<?php uol_meta(); ?>
 
     <!-- site styles -->
-    <link rel="stylesheet" href="<?php echo get_stylesheet_uri(); ?>" />
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
     
     <!-- dynamic styles -->
     <?php //echo uol_get_dynamic_styles(); ?>
@@ -29,5 +29,6 @@
     <?php //echo uol_get_dynamic_scripts(); ?>
 
     <?php wp_head(); ?>
+    <link rel="stylesheet" href="<?php echo get_stylesheet_uri(); ?>" />
 
 </head>

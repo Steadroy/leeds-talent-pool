@@ -42,8 +42,14 @@ if ( ! class_exists( 'leeds_talent_pool' ) ) {
 			// require the class to log user actions
 			require_once( dirname(__FILE__) . '/lib/actions.php' );
 
-			// require the class change the login function
+			// require the class to change the login function
 			require_once( dirname(__FILE__) . '/lib/login.php' );
+
+			// require the class to provide filters for profile form
+			require_once( dirname(__FILE__) . '/lib/filters.php' );
+
+			// require the class to provide sidebars
+			require_once( dirname(__FILE__) . '/lib/sidebars.php' );
 
 			// hide admin bar from front end
 			add_filter('show_admin_bar', '__return_false');
@@ -53,6 +59,9 @@ if ( ! class_exists( 'leeds_talent_pool' ) ) {
 
 			// theme uninstallation
 			add_action( 'switch_theme', array( __CLASS__, 'uninstall' ) );
+
+			// make dasicons available to theme
+			add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_scripts' ) );
 		}
 
 		/**
@@ -81,6 +90,46 @@ if ( ! class_exists( 'leeds_talent_pool' ) ) {
 		public static function uninstall()
 		{
 			delete_option('ltp_theme_version');
+		}
+
+		/**
+		 * enqueue scripts and add dashicons
+		 */
+		public static function enqueue_scripts()
+		{
+			// queue dashicons
+			wp_enqueue_style( 'dashicons' );
+
+			// queue media
+			wp_enqueue_media();
+
+			wp_dequeue_script( 'uol' );
+
+			// register script
+			wp_register_script(
+				'ltp-script',
+				get_stylesheet_directory_uri() . '/scripts.min.js',
+				array('jquery'),
+				self::$version,
+				true
+			);
+			wp_localize_script(
+				'ltp-script',
+				'ppt',
+				array(
+					'ajaxurl' => admin_url('admin-ajax.php'),
+					'ajaxnonce' => wp_create_nonce( 'ajax_ppt_fields_action' ),
+					'img_empty_single' => __('No image selected', 'ppt'),
+					'img_empty_multiple' => __('No images selected', 'ppt'),
+					'img_select_single' => __('Select Image', 'ppt'),
+					'img_select_multiple' => __('Select Images', 'ppt'),
+					'img_remove' => __('remove image', 'ppt'),
+					'file_select' => __('Select file', 'ppt'),
+					'file_remove' => __('remove file', 'ppt'),
+					'file_empty' => __('No files selected', 'ppt')
+				)
+			);
+			wp_enqueue_script( 'ltp-script' );
 		}
 
 
