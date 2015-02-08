@@ -12,7 +12,7 @@
 	/**
  	 * make sure the previews are sortable 
  	 */
-	$('.ppt-preview-multiple').sortable({
+	$('.ppt-multiple').sortable({
 		update:function(){
 			setInputValue( $(this).data('inputid'), $(this).sortable("toArray", {attribute:"data-imageid"}) );
 		},
@@ -47,12 +47,12 @@
  			/* get selection and save to hidden input field */
 			var file = ppt_file_frame.state().get('selection').first().toJSON();
 			if ( file ) {
-				var newFile = '<div class="ppt-file-container" data-fileid="'+file.id+'"><a data-inputid="'+inputID+'" data-fileid="'+file.id+'" class="ppt-file-link" href="'+file.url+'" />'+file.title+'</a> <a class="ppt-remove-file" href="#" title="'+ppt.file_remove+'" data-inputid="'+inputID+'">&#61826;</a></div>';
+				var newFile = '<div class="ppt-file-container"><p><a data-inputid="'+inputID+'" data-fileid="'+file.id+'" class="ppt-file-link" href="'+file.url+'">'+file.title+'</a></p> <a class="ppt-remove-file" href="#" title="'+ppt.file_remove+'" data-inputid="'+inputID+'">&#61826;</a></div>';
 				setInputValue( inputID, file.id );
 				$('#'+inputID+'-preview').html(newFile);
 			} else {
 				setInputValue( inputID, '' );
-				$('#'+inputID+'-preview').html('<p>'+ppt.file_empty+'</p>');
+				$('#'+inputID+'-preview').html('<div class="ppt-file-container"><p>'+ppt.file_empty+'</p></div>');
 			}
 		});
 		ppt_file_frame.on('open', function() {
@@ -102,7 +102,7 @@
 				var image = attachment.toJSON(),
 				imageURL = (image.sizes && image.sizes[thumb_size])? image.sizes[thumb_size].url: image.url;
 				if (image.id) {
-					newImages += '<div class="ppt-image-container" data-imageid="'+image.id+'"><div data-inputid="'+inputID+'" data-imageid="'+image.id+'" class="ppt-image-inner"><img src="'+imageURL+'" /><a class="ppt-remove-image" href="#" title="'+ppt.img_remove+'">&#61826;</a></div></div>';
+					newImages += '<div class="ppt-image-container"><img src="'+imageURL+'" /><a class="ppt-remove-image ppt-multiple" href="#" title="'+ppt.img_remove+'">&#61826;</a></div>';
 					imageIDs.push(image.id);
 				}
 			});
@@ -113,7 +113,7 @@
 			} else {
 				/* reset hidden input and empty preview */
 				setInputValue( inputID, '' );
-				$('#'+inputID+'-preview').html('<p>'+ppt.img_empty_multiple+'</p>');
+				$('#'+inputID+'-preview').html('<div class="ppt-image-container"><p>'+ppt.img_empty_multiple+'</p></div>');
 			}
 		});
 		/* opens the wp.media frame and selects the appropriate images */
@@ -164,7 +164,7 @@
 			var image = ppt_img_frame.state().get('selection').first().toJSON();
 			if ( image ) {
 				var imageURL = (image.sizes && image.sizes[thumb_size])? image.sizes[thumb_size].url: image.url,
-					newImage = '<div class="ppt-image-container" data-imageid="'+image.id+'"><div data-inputid="'+inputID+'" data-imageid="'+image.id+'" class="ppt-image-inner"><img src="'+imageURL+'" /><a class="ppt-remove-image ppt-img-multiple" href="#" title="'+ppt.img_remove+'">&#61826;</a></div></div>';
+					newImage = '<div class="ppt-image-container"><img src="'+imageURL+'" /><a class="ppt-remove-image ppt-single" href="#" title="'+ppt.img_remove+'" data-imageid="'+image.id+'" data-inputid="'+inputID+'">&#61826;</a></div>';
 				setInputValue( inputID, image.id );
 				$('#'+inputID+'-preview').html(newImage);
 			} else {
@@ -187,8 +187,8 @@
 	/* removes an image from a selection */
 	$(document).on('click', 'a.ppt-remove-image', function(e){
 		e.preventDefault();
-		var inputID = $(this).parent().data('inputid');
-		var imageID = $(this).parent().data('imageid');
+		var inputID = $(this).data('inputid');
+		var imageID = $(this).data('imageid');
 		var currentImages = $('#'+inputID).val().split(','),
 			newSlides = [];
 		for (i = 0; i < currentImages.length; i++) {
@@ -198,9 +198,10 @@
 		}
 		if ( ! newSlides.length ) {
 			setInputValue( inputID, '' );
-			var emptymsg = $(this).hasClass('ppt-img-multiple') ? ppt.img_empty_multiple : ppt.img_empty_single;
-			$('#'+inputID+'-preview').html('<p>'+emptymsg+'</p>');
+			var emptymsg = $(this).hasClass('ppt-multiple') ? ppt.img_empty_multiple : ppt.img_empty_single;
+			$('#'+inputID+'-preview').html('<div class="ppt-image-container"><p>'+emptymsg+'</p></div>');
 		} else {
+			console.log(newSlides);
 			setInputValue( inputID, newSlides.join(',') );
 		}
 		$(this).parents('.ppt-image-container').remove();
@@ -210,7 +211,7 @@
 		e.preventDefault();
 		var inputID = $(this).data('inputid');
 		setInputValue( inputID, '' );
-		$('#'+inputID+'-preview').html('<p>'+ppt.file_empty+'</p>');
+		$('#'+inputID+'-preview').html('<div class="ppt-file-container"><p>'+ppt.file_empty+'</p></div>');
 	});
 
 	/* this is so I can hook into where the input is set */
@@ -2079,29 +2080,58 @@
 	checkCompletion = function()
 	{
 		var complete_count = 0,
-			vals = ['#firstname','#surname','#photo','#gender','#experience','#region','#statement','#showcase1_title','#showcase1_text','#showcase2_title','#showcase2_text','#showcase3_title','#showcase3_text'],
+			vals = [
+				'#firstname',
+				'#surname',
+				'#photo',
+				'#gender',
+				'#experience',
+				'#region',
+				'#achievements',
+				'#statement'
+			],
 			checks_count = 0;
 
 		for (var i = 0; i < vals.length; i++) {
 			checks_count++;
-			if ($(vals[i]).val() !== '') {
+			var v = $(vals[i]).val();
+			if ( v !== '' && v !== 'null' ) {
 				complete_count++;
-			} else {
-				console.log(vals[i]+' empty');
 			}
 		}
+		// check lists of checkboxes to make sure at least one is checked
 		$('.checkbox-list').each(function(){
 			checks_count++;
 			if ($(':checkbox:checked', this).length) {
 				complete_count++;
 			}
 		});
+		// go through showcases - each needs title, text and one form of media
+		for (var j = 1; j <= 3; j++) {
+			checks_count++;
+			if ($('#showcase'+j+'_title').val() !== '') {
+				complete_count++;
+			}
+			checks_count++;
+			if ($('#showcase'+j+'_text').val() !== '') {
+				complete_count++;
+			}
+			checks_count++;
+			if ($('#showcase'+j+'_image').val() !== '' || $('#showcase'+j+'_file').val() !== '' || $('#showcase'+j+'_video').val() !== '') {
+				complete_count++;
+			}
+		}
 		var complete_pc = ( complete_count === checks_count ) ? '100%': Math.floor((complete_count/checks_count)*100)+'%';
 		$('.completion-meter span').css({width:complete_pc});
-
+	},
+	checkName = function()
+	{
+		if ($.trim($('#firstname').val()) === '' || $.trim($('#surname').val()) === '') {
+			return false;
+		}
+		return true;
 	};
 	if ($('.ltp-profile-builder').length) {
-		$('.completion-meter span').css({width:'50%'});
 		$('.checkbox-list').jScrollPane({verticalGutter:0});
 		$('.checkbox-list label').on('click', checkCheckboxLists);
 		checkCheckboxLists();
@@ -2111,5 +2141,13 @@
 		checkCompletion();
 		$('.sticky').sticky();
 	}
+	$('.ppt-preview-button, .ppt-publish-button').on('click', function(e){
+		if ( ! checkName() ) {
+			e.preventDefault();
+			alert('Please fill in your name');
+			$('#firstname').focus();
+			return false;
+		}
+	});
 
 })(jQuery);

@@ -25,12 +25,15 @@ if ( ! class_exists( 'ltp_filters' ) ) {
 		{
 			switch ( $data["config"]["type"] ) {
 				case "image":
+				case "file":
+					return sprintf('<div class="media-controls">%s</div>', $data["control"]["input"] );
+					break;
 				case "text":
 					return $data["control"]["input"];
 					break;
 				case "select":
 					if ( $data["config"]["control_type"] == "dropdown" && $data["config"]["allow_multiple_select"] == "0" ) {
-						return sprintf('<div class="select-wrapper">%s<br><div class="select-bg">%s</div></div>', $data["control"]["label"], $data["control"]["input"]);
+						return sprintf('<div class="select-wrapper"><div class="select-bg">%s</div></div>', $data["control"]["input"]);
 					} else {
 						return $data["control"]["input"];
 					}
@@ -44,9 +47,9 @@ if ( ! class_exists( 'ltp_filters' ) ) {
 		/* removes the site sidebar class from the body */
 		public static function remove_site_sidebar( $classes )
 		{
-			$newclasses = array( 'sidebars-section' );
+			//$newclasses = array( 'sidebars-section' );
 			foreach ($classes as $class) {
-				if ( $class !== 'sidebars-site' && $class !== 'sidebars-both' && $class !== 'sidebar-corporate' && $class !== 'sidebars-none' ) {
+				if ( $class !== 'sidebars-site' && $class !== 'sidebars-both' && $class !== 'sidebar-corporate' ) {
 					$newclasses[] = $class;
 				}
 			}

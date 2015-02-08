@@ -28,7 +28,7 @@ if ( count( $people_pages ) ) {
 /*
  * If a user has no page, they see the preview, save and publish buttons
  * If a user has a page which is still draft status, they see the preview, update and publish buttons
- * If a user has a page which is published, they see the update button and unpublish button
+ * If a user has a page which is published, they see the view, update button and unpublish button
  */
 if ( isset( $_REQUEST["save"] ) || isset( $_REQUEST["preview"] ) || isset( $_REQUEST["publish"] ) || isset( $_REQUEST["unpublish"] ) || isset( $_REQUEST["update"] ) ) {
 	global $current_user;
@@ -72,6 +72,8 @@ if ( isset( $_REQUEST["save"] ) || isset( $_REQUEST["preview"] ) || isset( $_REQ
 	if ( isset( $_REQUEST["preview"] ) && $user_page ) {
 		$qs = ( $is_published ) ? '?preview=1': '&preview=1';
 		wp_safe_redirect( get_permalink( $user_page->ID ) . $qs );
+	} elseif (isset( $_REQUEST["view"] ) && $user_page ) {
+		wp_safe_redirect( get_permalink( $user_page->ID ) );
 	}
 }
 
@@ -84,25 +86,10 @@ if ( have_posts() ) while ( have_posts() ) : the_post();
 
 		//printf( '<p class="compulsory">Compulsory field</p>');
 
-		printf( '<div class="section sticky"><h3>Profile Completion</h3><div class="completion-meter"><span></span></div>' );
-		if ( ! $is_published ) {
-			print( '<button name="preview" class="ppt-button ppt-preview-button">Preview</button>' );
-		}
-		if ( ! $has_page ) {
-			print( '<button name="save" class="ppt-button ppt-save-button">Save</button>' );
-		} else {
-			print( '<button name="update" class="ppt-button ppt-save-button">Update</button>' );
-		}
-		if ( ! $has_page || ( $has_page && ! $is_published ) ) {
-			print( '<button name="publish" class="ppt-button ppt-publish-button">Publish</button>' );
-		}
-		if ( $has_page && $is_published ) {
-			print( '<button name="unpublish" class="ppt-button ppt-publish-button">Un-publish</button>' );
-		}
-		print( '</div>' );
+		echo leeds_talent_pool::profile_toolbar( $has_page, $is_published );
 		
 		// student photo
-		print('<div class="section"><h3>1. Upload Photo</h3>');
+		print('<div class="section top"><h3>1. Upload Photo</h3>');
 		echo PeoplePostType::get_profile_field_control( array('field_name' => 'photo') );
 		print('</div>');
 
@@ -138,6 +125,8 @@ if ( have_posts() ) while ( have_posts() ) : the_post();
 			echo PeoplePostType::get_profile_field_control( array('field_name' => 'showcase' . $i . '_title') );
 			echo PeoplePostType::get_profile_field_control( array('field_name' => 'showcase' . $i . '_text') );
 			echo PeoplePostType::get_profile_field_control( array('field_name' => 'showcase' . $i . '_image') );
+			echo '<p style="margin:0;"><em>Or&hellip;</em></p>';
+			echo PeoplePostType::get_profile_field_control( array('field_name' => 'showcase' . $i . '_video') );
 			echo PeoplePostType::get_profile_field_control( array('field_name' => 'showcase' . $i . '_file') );
 			print( '</div>' );
 		}

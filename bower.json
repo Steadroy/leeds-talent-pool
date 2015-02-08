@@ -23,6 +23,7 @@
     "jquery-sticky": "garand/sticky#~1.0.1",
     "people-post-type": "essl-pvac/people-post-type",
     "uol-wordpress-theme": "essl-pvac/uol-wordpress-theme#master",
-    "jScrollPane": "vitch/jScrollPane#~2.0.20"
+    "jScrollPane": "vitch/jScrollPane#~2.0.20",
+    "swipebox": "brutaldesign/swipebox#~1.2.9"
   }
 }

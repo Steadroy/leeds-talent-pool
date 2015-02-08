@@ -132,9 +132,31 @@ if ( ! class_exists( 'leeds_talent_pool' ) ) {
 			wp_enqueue_script( 'ltp-script' );
 		}
 
-
-
-
+		/**
+		 * returns the sticky toolbar for student users
+		 */
+		public static function profile_toolbar( $has_page, $is_published )
+		{
+			$toolbar = '<div class="section sticky"><h3>Profile Completion</h3><div class="completion-meter"><span></span></div>';
+			if ( ! $is_published ) {
+				$toolbar .= '<button name="preview" class="ppt-button ppt-preview-button">Preview</button>';
+			} else {
+				$toolbar .= '<button name="view" class="ppt-button ppt-view-button">View</button>';
+			}
+			if ( ! $has_page ) {
+				$toolbar .= '<button name="save" class="ppt-button ppt-save-button">Save</button>';
+			} else {
+				$toolbar .= '<button name="update" class="ppt-button ppt-update-button">Update</button>';
+			}
+			if ( ! $has_page || ( $has_page && ! $is_published ) ) {
+				$toolbar .= '<button name="publish" class="ppt-button ppt-publish-button">Publish</button>';
+			}
+			if ( $has_page && $is_published ) {
+				$toolbar .= '<button name="unpublish" class="ppt-button ppt-unpublish-button">Un-publish</button>';
+			}
+			$toolbar .= '</div>';
+			return $toolbar;
+		}
 
 
 	}
