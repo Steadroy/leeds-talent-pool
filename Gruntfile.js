@@ -24,7 +24,7 @@ module.exports = function(grunt) {
 				dest: 'style.css'
 			},
 			themejs: {
-				src: ['bower_components/people-post-type/js/profile.js', 'bower_components/jquery-sticky/jquery.sticky.js', 'bower_components/jScrollPane/script/jquery.mousewheel.js', 'bower_components/jScrollPane/script/jquery.jscrollpane.js','js/scripts.js'],
+				src: ['bower_components/people-post-type/js/profile.js', 'bower_components/jquery-colorbox/jquery.colorbox.js', 'bower_components/jquery-sticky/jquery.sticky.js', 'bower_components/jScrollPane/script/jquery.mousewheel.js', 'bower_components/jScrollPane/script/jquery.jscrollpane.js','js/scripts.js'],
 				dest: 'scripts.js'
 			}
 		},

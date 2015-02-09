@@ -73,8 +73,8 @@
 			checkCompletion();
 		});
 		checkCompletion();
-		$('.sticky').sticky();
 	}
+	$('.sticky').sticky();
 	$('.ppt-preview-button, .ppt-publish-button').on('click', function(e){
 		if ( ! checkName() ) {
 			e.preventDefault();
@@ -83,5 +83,10 @@
 			return false;
 		}
 	});
-
+	$('.showcase-button').colorbox({
+		inline:true,
+		width:'90%',
+		maxWidth:'940px',
+		current:"Showcase {current} of {total}"
+	});
 })(jQuery);

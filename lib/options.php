@@ -70,6 +70,28 @@ if ( ! class_exists( 'ltp_options' ) ) {
 				)
 			);
 			add_settings_field(
+				'viewer_page_id', 
+				'Profile viewer page', 
+				array(__CLASS__, 'ltp_setting_page_select'), 
+				'ltp_options', 
+				'ltp_general-options',
+				array(
+					'fieldname' => 'viewer_page_id',
+					'desc' => 'Select a page to use as the Profile Viewer page (should use the profile viewer page template)'
+				)
+			);
+			add_settings_field(
+				'invalid_role_page_id', 
+				'Invalid Role page', 
+				array(__CLASS__, 'ltp_setting_page_select'), 
+				'ltp_options', 
+				'ltp_general-options',
+				array(
+					'fieldname' => 'invalid_role_page_id',
+					'desc' => 'Select a page to redirect users to if they do not have a valid role on the site'
+				)
+			);
+			add_settings_field(
 				'wpp_url',
 				'WPP Authentication API URL',
 				array(__CLASS__, 'ltp_setting_text'),

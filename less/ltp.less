@@ -1,3 +1,4 @@
+@orange: #fe7500;
 @form-bg: #faf9f5;
 @form-text: #666;
 @meter: #999;
@@ -86,18 +87,17 @@
 			}
 			&.sticky {
 				background-color:@form-bg;
-				z-index:10000;
+				z-index:9998;
 				margin-top:0;
 				border-top:0;
-    			width:100%;
-    			max-width:910px;
+				width:100%;
+				max-width:910px;
 				border-bottom:1px solid @border;
 
 				h3 {
 					margin-top:0;
 				}
 			}
-
 		}
 		h2 {
 			padding-left:1em;
@@ -128,6 +128,7 @@
 		button.ppt-media-multiple-images,
 		button.ppt-media-file,
 		.profile-button {
+			text-decoration:none;
 			border:0;
 			.rounded(4px);
 			background-color:@button;
@@ -207,6 +208,125 @@
 			}
 		}
 	}
+	.ltp-profile-viewer {
+		.section.sticky {
+			max-width:700px;
+			padding:0;
+		}
+		.ltp-profile-wrap {
+			padding:1em;
+		}
+		.vcard {
+			width:40%;
+			padding:0 2%;
+			float:left;
+			margin:0 1em 1em 0;
+			background:#fff;
+			border:1px solid @border;
+			border-top:3em solid @orange;
+			p {
+				margin:.5em 0;
+			}
+			.photo {
+				margin-top:-3em;
+				text-align:center;
+				img {
+					width:60%;
+					height:auto;
+					margin:0 auto;
+				}
+			}
+			h2 {
+				padding-left:0;
+			}
+		}
+		h2.showcase-title {
+			padding-left:0;
+			clear:both;
+			padding-top:1em;
+		}
+		.showcase {
+			display:none;
+		}
+		.showcase-thumbs {
+			.showcase-thumb {
+				text-align:center;
+				border:1px solid @border;
+				background:#fff;
+				width:30%;
+				margin-right:3%;
+				float:left;
+				&:last-child {
+					margin-right:0;
+				}
+				img {
+					width:100%;
+					height:auto;
+				}
+				a.profile-button {
+					display:inline-block;
+					margin-right:0;
+					margin-top:.5em;
+					margin-bottom:.5em;
+					clear:both;
+				}
+			}
+		}
+	}
+}
+.showcase {
+	width:100%;
+	position:relative;
+	h3 {
+		font-size:1.8em;
+	}
+	.video-wrap {
+		width:60%;
+		float:right;
+		margin:0 0 1em 1em;
+		.video-container {
+			position: relative;
+			height: 0;
+			overflow: hidden;
+			width:100%;
+			iframe {
+				width:100%;
+				height:100%;
+				position:absolute;
+				left:0;
+				top:0;
+			}
+		}
+	}
+	img {
+		float:right;
+		width:60%;
+		height:auto;
+		margin:0 0 1em 1em;
+	}
+}
+.profile-button,
+.login-submit #wp-submit {
+	padding:0.5em;
+	font-size:1.2em;
+	margin-right:1em;
+	border:0;
+	text-decoration:none;
+	.rounded(4px);
+	background-color:@button;
+	color:@button-text;
+	&:hover {
+		background:@button-hover;
+		color:@button-text-hover;
+	}
+}
+.ppt-single .ppt-image-container.none-selected,
+.ppt-file-container.none-selected {
+	p {
+		&:before {
+			color:@orange;
+		}
+	}
 }
 .checkbox-list {
 	height:15em;
@@ -266,4 +386,41 @@
 }
 p.ppt-media-selection-button {
 	margin-top:0;
+}
+.page-template-invalid-role-template,
+.page-template-login-page-template {
+	.content-main {
+		margin-top:0;
+		background: transparent url(img/connect-bg.jpg) no-repeat left top;
+		height:752px;
+		.ltp-login-page,
+		.invalid-role-page {
+			.rounded(2em);
+			margin:11em 2em;
+			padding:2em;
+			background:rgba(0,0,0,0.5);
+			.clearfix;
+		}
+		.ltp-login-form {
+			width:50%;
+			float:right;
+			label {
+				display:inline-block;
+				width:40%;
+				padding-right:5%;
+				text-align:right;
+			}
+			input[type=text],input[type=password] {
+				width:50%;
+				line-height:1.5em;
+				font-size:1.5em;
+			}
+			.login-submit #wp-submit {
+				float:right;
+			}
+		}
+		h2, h1, a, a:hover, a:visited:hover, p {
+			color:#fff;
+		}
+	}
 }

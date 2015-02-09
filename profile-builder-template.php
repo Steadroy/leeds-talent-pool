@@ -2,6 +2,20 @@
 /*
 Template Name: Profile Builder page
 */
+$options = ltp_options::get_options();
+// redirect users with incorrect roles
+if ( is_user_logged_in() ) {
+	if ( ! is_student() && ! is_wpp() ) {
+		if ( isset( $options["invalid_role_page_id"] ) ) {
+			wp_redirect( get_permalink( $options["invalid_role_page_id"] ) );
+		}
+	} elseif ( is_wpp() ) {
+		if ( isset( $options["viewer_page_id"] ) ) {
+			wp_redirect( get_permalink( $options["viewer_page_id"] ) );
+		}
+	}
+}
+
 $has_page = false;
 $is_published = false;
 $user_page = false;
@@ -125,7 +139,7 @@ if ( have_posts() ) while ( have_posts() ) : the_post();
 			echo PeoplePostType::get_profile_field_control( array('field_name' => 'showcase' . $i . '_title') );
 			echo PeoplePostType::get_profile_field_control( array('field_name' => 'showcase' . $i . '_text') );
 			echo PeoplePostType::get_profile_field_control( array('field_name' => 'showcase' . $i . '_image') );
-			echo '<p style="margin:0;"><em>Or&hellip;</em></p>';
+			echo '<p style="margin:0;"><em>Or video&hellip;</em></p>';
 			echo PeoplePostType::get_profile_field_control( array('field_name' => 'showcase' . $i . '_video') );
 			echo PeoplePostType::get_profile_field_control( array('field_name' => 'showcase' . $i . '_file') );
 			print( '</div>' );
