@@ -45,7 +45,7 @@ if ( ! class_exists( 'ltp_sidebars' ) ) {
 		public static function sidebar()
 		{
 			global $post;
-			if ( is_wpp() ) {
+			if ( ltp_is_wpp() ) {
 
 				dynamic_sidebar( 'wpp-sidebar' );
 			} else {

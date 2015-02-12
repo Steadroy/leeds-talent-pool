@@ -64,13 +64,10 @@ if ( ! class_exists( 'ltp_filters' ) ) {
 			if ( ! is_a( $current_user, 'WP_User') ) {
 				return;
 			}
-
-			if ( 'upload.php' !== $pagenow ) {
-				return;
-			}
-			
-			if ( ! current_user_can( 'manage_options' ) ) {
-				$wp_query->set( 'author', $current_user->id );
+			if ( 'upload.php' == $pagenow || ('admin-ajax.php' == $pagenow && $_REQUEST['action'] == 'query-attachments') ) {
+				if ( ltp_is_student() ) {
+					$wp_query->set( 'author', $current_user->id );
+				}
 			}
 		}
 	}

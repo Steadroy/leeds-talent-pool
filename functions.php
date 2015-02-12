@@ -2,26 +2,50 @@
 /**
  * Leeds Talent pool functions
  */
-function is_wpp()
+function ltp_is_wpp()
 {
 	if ( is_user_logged_in() ) {	
 		$current_user = wp_get_current_user();
-		$roles = $current_user->roles;
-		$role = array_shift($roles);
-		if ( $role === 'wppuser' ) {
+		if ( $current_user->has_cap( 'wppuser' ) ) {
 			return true;
 		}
 	}
 	return false;
 }
-function is_student()
+function ltp_is_student()
 {
 	if ( is_user_logged_in() ) {	
 		$current_user = wp_get_current_user();
-		$roles = $current_user->roles;
-		$role = array_shift($roles);
-		if ( $role === 'student' ) {
+		if ( $current_user->has_cap( 'student' ) ) {
 			return true;
+		}
+	}
+	return false;
+}
+function ltp_is_admin()
+{
+	if ( is_user_logged_in() ) {	
+		$current_user = wp_get_current_user();
+		if ( $current_user->has_cap( 'administrator' ) ) {
+			return true;
+		}
+	}
+	return false;
+}
+function ltp_redirect_to( $pagename )
+{
+	$page_url = ltp_get_page_url( $pagename );
+	if ( $page_url ) {
+		wp_redirect( $page_url );
+	}
+}
+function ltp_get_page_url( $pagename )
+{
+	$options = ltp_options::get_options();
+	if ( isset( $options[$pagename . "_page_id"] ) ) {
+		$page_url = get_permalink( $options[$pagename . "_page_id"] );
+		if ( $page_url ) {
+			return str_replace('http:', 'https:', $page_url);
 		}
 	}
 	return false;
@@ -62,6 +86,9 @@ if ( ! class_exists( 'leeds_talent_pool' ) ) {
 
 			// make dasicons available to theme
 			add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_scripts' ) );
+
+			// force ssl for site
+			//add_action( 'plugins_loaded', array( __CLASS__, 'force_ssl' ) );
 		}
 
 		/**
@@ -158,6 +185,17 @@ if ( ! class_exists( 'leeds_talent_pool' ) ) {
 			return $toolbar;
 		}
 
+		/**
+		 * forces SSL connection on all pages
+		 */
+		public static function force_ssl()
+		{
+			if ( ! isset( $_SERVER["HTTPS"] ) ) {
+				$newurl = "https://" . $_SERVER["SERVER_NAME"] . $_SERVER["REQUEST_URI"];
+				wp_redirect( $newurl );
+				exit();
+			}
+		}
 
 	}
 	leeds_talent_pool::register();

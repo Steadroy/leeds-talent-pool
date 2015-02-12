@@ -3,24 +3,24 @@
 Template Name: Profile Builder page
 */
 $options = ltp_options::get_options();
+// redirect to https
+
 // redirect users with incorrect roles
 if ( is_user_logged_in() ) {
-	if ( ! is_student() && ! is_wpp() ) {
-		if ( isset( $options["invalid_role_page_id"] ) ) {
-			wp_redirect( get_permalink( $options["invalid_role_page_id"] ) );
-		}
-	} elseif ( is_wpp() ) {
-		if ( isset( $options["viewer_page_id"] ) ) {
-			wp_redirect( get_permalink( $options["viewer_page_id"] ) );
-		}
+	if ( ! ltp_is_student() && ! ltp_is_wpp() && ! ltp_is_admin() ) {
+		ltp_redirect_to("invalid_role");
+	} elseif ( ltp_is_wpp() ) {
+		ltp_redirect_to("viewer");
 	}
+} else {
+	ltp_redirect_to('login');
 }
 
 $has_page = false;
 $is_published = false;
 $user_page = false;
 $errors = '';
-$current_user = wp_get_current_user();
+global $current_user;
 $people_pages = get_posts(array(
 	'post_type' => 'people',
 	'posts_per_page' => 1,
@@ -44,8 +44,7 @@ if ( count( $people_pages ) ) {
  * If a user has a page which is still draft status, they see the preview, update and publish buttons
  * If a user has a page which is published, they see the view, update button and unpublish button
  */
-if ( isset( $_REQUEST["save"] ) || isset( $_REQUEST["preview"] ) || isset( $_REQUEST["publish"] ) || isset( $_REQUEST["unpublish"] ) || isset( $_REQUEST["update"] ) ) {
-	global $current_user;
+if ( isset( $_REQUEST["save"] ) || isset( $_REQUEST["view"] ) || isset( $_REQUEST["preview"] ) || isset( $_REQUEST["publish"] ) || isset( $_REQUEST["unpublish"] ) || isset( $_REQUEST["update"] ) ) {
 	PeoplePostType::save_extra_profile_fields( $current_user->ID );
 	// first check the user has a page
 	if ( ! $has_page ) {
@@ -85,17 +84,18 @@ if ( isset( $_REQUEST["save"] ) || isset( $_REQUEST["preview"] ) || isset( $_REQ
 	}
 	if ( isset( $_REQUEST["preview"] ) && $user_page ) {
 		$qs = ( $is_published ) ? '?preview=1': '&preview=1';
-		wp_safe_redirect( get_permalink( $user_page->ID ) . $qs );
+		wp_redirect( str_replace('http:', 'https:', get_permalink( $user_page->ID ) ) . $qs );
 	} elseif (isset( $_REQUEST["view"] ) && $user_page ) {
-		wp_safe_redirect( get_permalink( $user_page->ID ) );
+		wp_redirect( str_replace('http:', 'https:', get_permalink( $user_page->ID ) ) );
 	}
 }
 
 get_header();
+
 if ( have_posts() ) while ( have_posts() ) : the_post();
 
 	if ( class_exists("PeoplePostType") ) {
-		printf( '<h2>%s</h2><form action="%s" method="post" class="ltp-profile-builder">', get_the_title(), get_permalink( $post->ID ) );
+		printf( '<form action="%s" method="post" class="ltp-profile-builder"><h2>%s</h2>', get_permalink( $post->ID ), get_the_title() );
 		echo PeoplePostType::get_profile_field_control( array('field_name' => 'nonce') );
 
 		//printf( '<p class="compulsory">Compulsory field</p>');
@@ -132,6 +132,7 @@ if ( have_posts() ) while ( have_posts() ) : the_post();
 		//personal Statement
 		print( '<div class="section"><h3>6. Personal Statement</h3>' );
 		echo PeoplePostType::get_profile_field_control( array('field_name' => 'statement') );
+		echo PeoplePostType::get_profile_field_control( array('field_name' => 'cv') );
 		print( '</div>' );
 
 		for ( $i = 1; $i <= 3; $i++ ) {

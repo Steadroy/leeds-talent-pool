@@ -18,13 +18,16 @@ if ( ! class_exists( 'ltp_login' ) ) {
 			// add_filter( 'authenticate', array( __CLASS__, 'authenticate_WPP_user' ), 10, 3 );
 
 			// force login
-			add_action( 'wp', array(__CLASS__, 'force_members_login_init') );
+			add_action( 'wp', array( __CLASS__, 'force_members_login_init' ) );
 
 			// intercept failed logins
-			add_action( 'wp_login_failed', array(__CLASS__, 'login_failed') );
+			add_action( 'wp_login_failed', array( __CLASS__, 'login_failed' ) );
 
 			// intercept blank logins
-			add_action( 'authenticate', array(__CLASS__, 'blank_login') );
+			add_action( 'authenticate', array( __CLASS__, 'blank_login' ) );
+
+			// redirect after login
+			add_filter( 'login_redirect', array( __CLASS__, 'redirect_after_login' ), 10, 3 );
 
 		}
 
@@ -41,11 +44,11 @@ if ( ! class_exists( 'ltp_login' ) ) {
 
 			/* This is an array of pages that will be EXCLUDED from being blocked */
 			$exclusions = array(
-				'wp-login.php',
+				//'wp-login.php',
 				'wp-cron.php', // Just incase
 				'wp-trackback.php',
 				'xmlrpc.php',
-				'login'
+				//'login'
 			);
 
 			/* If the current script name is in the exclusion list, abort */
@@ -53,17 +56,16 @@ if ( ! class_exists( 'ltp_login' ) ) {
 
 			/* if this is the login page, abort */
 			if ( isset( $options["login_page_id"] ) ) {
-			
+				
 				if ( get_queried_object_id() == $options["login_page_id"] ) {
 					return;
 				}
 
 				/* Still here? Okay, then redirect to the login form */
 				self::redirect();
+			} else {
+				return;
 			}
-			
-			/* redirect to regular wordpress login if all else fails */
-			auth_redirect();
 		}
 
 		/**
@@ -178,6 +180,30 @@ if ( ! class_exists( 'ltp_login' ) ) {
 					}
 				}
 			}
+		}
+
+		public static function redirect_after_login( $redirect, $redirect_to, $user)
+		{
+			$options = ltp_options::get_options();
+			// make sure we have a valid user
+			if ( $user && is_object( $user ) && is_a( $user, 'WP_User' ) ) {
+				if ( $user->has_cap( 'administrator' ) ) {
+					return admin_url();
+				}
+				if ( ! ltp_is_student() && ! ltp_is_wpp() ) {
+					return ltp_get_page_url( "invalid_role" );
+				} elseif ( ltp_is_student() ) {
+					return ltp_get_page_url( "builder" );
+				} elseif ( ltp_is_wpp() ) {
+					return ltp_get_page_url( "viewer" );
+				}
+			} else {
+				$login_url = self::login_page_url();
+				if ( $login_url ) {
+					return $login_url;
+				}
+			}
+			return $redirect;
 		}
 
 		/**

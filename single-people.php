@@ -10,15 +10,14 @@
 $options = ltp_options::get_options();
 // redirect users with incorrect roles
 if ( is_user_logged_in() ) {
-	if ( ! is_student() && ! is_wpp() ) {
-		if ( isset( $options["invalid_role_page_id"]))
-			wp_redirect( get_permalink( $options["invalid_role_page_id"] ) );
-		}
+	if ( ! ltp_is_student() && ! ltp_is_wpp() && ! ltp_is_admin() ) {
+		ltp_redirect_to("invalid_role");
 	}
+} else {
+	ltp_redirect_to('login');
 }
 
 get_header(); 
-
 
 // start Wordpress loop
 if (have_posts()) : while (have_posts()) : the_post();
@@ -58,9 +57,15 @@ if (have_posts()) : while (have_posts()) : the_post();
 	}
 	printf('<h2 class="full-name">%s</h2>', $post->post_title);
 	printf('<p><strong>Qualifications:</strong> %s</p>', get_user_meta( $current_user->ID, 'qualifications', true) );
-	printf('<p><strong>Current location:</strong> %s</p>', implode(", ", get_user_meta( $current_user->ID, 'region', true) ) );
+	$loc = get_user_meta( $current_user->ID, 'region', true );
+	if ( is_array($loc) && count($loc) && $loc[0] !== 'null' ) {
+		printf('<p><strong>Current location:</strong> %s</p>', $loc[0] );
+	}
 	printf('<p><strong>Willing to work in:</strong> %s</p>', implode(", ", get_user_meta( $current_user->ID, 'desired_region', true) ) );
-	printf('<p><strong>Experience (years):</strong> %s</p>', get_user_meta( $current_user->ID, 'experience', true)[0] );
+	$exp = get_user_meta( $current_user->ID, 'experience', true );
+	if ( is_array($exp) && count($exp) && $exp[0] !== 'null' ) {
+		printf('<p><strong>Experience (years):</strong> %s</p>',  $exp[0]);
+	}
 	printf('<p><strong>Expertise:</strong> %s</p>', implode(", ", get_user_meta( $current_user->ID, 'expertise', true) ) );
 	$cv_ID = get_user_meta( $current_user->ID, 'cv', true );
 	if ( $cv_ID !== '' ) {
