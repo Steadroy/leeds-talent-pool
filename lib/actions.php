@@ -30,7 +30,7 @@ if ( ! class_exists( 'ltp_actions' ) ) {
 				$query = "CREATE TABLE " . $data_table_name . " (
 					entry_id int(11) NOT NULL AUTO_INCREMENT,
 					user_id int(11) NOT NULL,
-					page_id int(11) NOT NULL,
+					profile_page_id int(11) NOT NULL,
 					profile_username VARCHAR(255) NOT NULL DEFAULT '',
 					access_time int(11) NOT NULL,
 					entry_type VARCHAR(255) NOT NULL DEFAULT '',
@@ -66,6 +66,10 @@ if ( ! class_exists( 'ltp_actions' ) ) {
 
 		/**
 		 * inserts an entry into the logger
+		 * @var array An array containing the following members:
+		 *  - user_id (optional, will defaulkt to current user if not supplied)
+		 *  - profile_page_id (mandatory)
+		 *  - entry_type (optional, will default to 'log')
 		 */
 		private static function log( $data )
 		{
@@ -73,69 +77,164 @@ if ( ! class_exists( 'ltp_actions' ) ) {
 			if ( ! is_array( $data ) ) {
 				return false;
 			} else {
-				$db_data = array();
 				// sanitise user_id
 				if ( ! isset( $data["user_id"] ) ) {
-					$db_data["user_id"] = get_current_user_id();
-					if ( $db_data["user_id"] === 0 ) {
+					$user_id = get_current_user_id();
+					if ( $user_id === 0 ) {
 						return false;
 					}
 				} else {
-					$db_data["user_id"] = intVal( $data["user_id"] );
+					$user_id = intVal( $data["user_id"] );
 				}
 
 				// sanitise page_id
-				if ( ! isset( $data["page_id"] ) ) {
-					$db_data["page_id"] = get_queried_object_id();
-					if ( $data["page_id"] === 0 ) {
-						return false;
-					}
+				if ( ! isset( $data["profile_page_id"] ) ) {
+					return false;
 				} else {
-					$db_data["page_id"] = intVal( $data["page_id"] );
+					$profile_page_id = intVal( $data["profile_page_id"] );
 				}
 
 				// derive username from page_id
-				$db_data["profile_username"] = get_post_meta( $db_data["page_id"], 'wp_username', true );
+				$profile_username = get_post_meta( $db_data["profile_page_id"], 'wp_username', true );
 				
-				// set timestamp
-				$db_data["access_time"] = time();
-
 				// make sure we have an entry type
-				if ( ! isset( $data["entry_type"] ) ) {
-					$db_data["entry_type"] = 'log';
-				} else {
-					$db_data["entry_type"] = trim( $data["entry_type"] );
-				}
+				$entry_type = ( ! isset( $data["entry_type"] ) ) ? 'log': trim( $data["entry_type"] );
 
 				// insert a row in the database
 				global $wpdb;
 				$tablename = self::get_data_tablename();
 				$wpdb->insert(
 					$tablename,
-					$db_data,
-					array( '%d', '%d', '%s', '%d', '%s')
+					array(
+						'user_id' => $user_id,
+						'profile_page_id' => $profile_page_id,
+						'profile_username' => $profile_username,
+						'access_time' => time(),
+						'entry_type' => $entry_type
+					),
+					array(
+						'%d',
+						'%d',
+						'%s',
+						'%d',
+						'%s'
+					)
 				);
 				return $wpdb->insert_id;
 			}
 		}
 
 		/**
-		 * updates the entry type of an existing log entry
+		 * gets all log entries for a user
+		 * @var integer user id
 		 */
-		private static function update_entry_type( $id, $type )
+		public static function get_user_data( $user_id = false )
+		{
+			if ( $user_id == false ) {
+				return array();
+			} else {
+				global $wpdb;
+				$tablename = self::get_data_tablename();
+				$results = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE `user_id` = %d;", $user_id ) );
+				if ( $results ) {
+					return $results;
+				} else {
+					return array();
+				}
+			}
+		}
+
+		/**
+		 * saves a profile to the users "basket"
+		 * @var integer user id
+		 * @var integer profile page ID	 
+		 */
+		public static function save_profile( $user_id, $profile_page_id )
+		{
+			self::log( array(
+				"user_id" => $user_id,
+				"profile_page_id" => $profile_page_id,
+				"entry_type" => "saved"
+			) );
+		}
+
+		/**
+		 * removes a profile from the users "basket"
+		 * @var integer user id
+		 * @var integer profile page ID	 
+		 */
+		public static function remove_profile( $user_id, $profile_page_id )
 		{
 			global $wpdb;
 			$tablename = self::get_data_tablename();
 			$wpdb->update(
 				$tablename,
 				array( 
-					'entry_type' => trim( stripslashes( $type ) )
+					'entry_type' => 'removed'
 				),
 				array(
-					'entry_id' => intval( $id )
+					'user_id' => intval( $user_id ),
+					'profile_page_id' => intval( $profile_page_id ),
+					'entry_type' => 'saved'
 				)
 			);
 		}
+
+		/**
+		 * logs a view for a single profile
+		 * @var integer user id
+		 * @var integer profile page ID	 
+		 */
+		public static function log_view( $user_id, $profile_page_id )
+		{
+			self::log( array(
+				"user_id" => $user_id,
+				"profile_page_id" => $profile_page_id,
+				"entry_type" => "view"
+			) );
+		}
+
+		/**
+		 * logs a CV download for a single profile
+		 * @var integer user id
+		 * @var integer profile page ID	 
+		 */
+		public static function log_cv_download( $user_id, $profile_page_id )
+		{
+			self::log( array(
+				"user_id" => $user_id,
+				"profile_page_id" => $profile_page_id,
+				"entry_type" => "cv_download"
+			) );
+		}
+		
+
+		/**
+		 * gets the number of views of a profile
+		 * @var integer profile page ID
+		 */
+		public static function get_views( $profile_page_id )
+		{
+			global $wpdb;
+			$tablename = self::get_data_tablename();
+			return $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) FROM $tablename WHERE `profile_page_id` = %d AND `entry_type` = 'view'", $profile_page_id ) );
+		}
+
+		/**
+		 * gets the number of views of a profile by username
+		 * @var integer profile page ID
+		 */
+		public static function get_views_by_username( $profile_username )
+		{
+			global $wpdb;
+			$tablename = self::get_data_tablename();
+			return $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) FROM $tablename WHERE `profile_username` = %s AND `entry_type` = 'view'", $profile_username ) );
+		}
+
+		/**
+		 * gets the number of times a profile has been saved
+		 */
+
 	}
 	ltp_actions::register();
 }
