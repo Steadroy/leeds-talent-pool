@@ -10,12 +10,19 @@
 $options = ltp_options::get_options();
 // redirect users with incorrect roles
 if ( is_user_logged_in() ) {
-	if ( ! ltp_is_student() && ! ltp_is_wpp() && ! ltp_is_admin() ) {
-		ltp_redirect_to("invalid_role");
+	if ( ! ltp_is_admin() ) {
+		if ( ! ltp_is_student() && ! ltp_is_wpp() ) {
+			ltp_redirect_to("invalid_role");
+		}
 	}
 } else {
 	ltp_redirect_to('login');
+}	if ( ! ltp_is_student() && ! ltp_is_wpp() ) {
+			ltp_redirect_to("invalid_role");
+		}
+	}
 }
+ltp_actions::save_actions();
 
 get_header(); 
 
@@ -31,8 +38,29 @@ if (have_posts()) : while (have_posts()) : the_post();
 	}
 	$options = ltp_options::get_options();
 
+	// log view if wpp user
+	if ( ltp_is_wpp() ) {
+		ltp_actions::log_view($current_user->ID, $post->ID);
+	}
+
 	/* start profile output */
 	print('<div class="ltp-profile-viewer">');
+
+	$cv_button = '';
+	$cv_ID = get_user_meta( $user->ID, 'cv', true );
+	if ( $cv_ID !== '' ) {
+		$cv_url = get_attachment_link( $cv_ID );
+		if ( ltp_is_wpp() ) {
+			printf('<form action="%s" method="post">', $_SERVER["REQUEST_URI"] );
+			printf('<input type="hidden" name="user_id" value="%s">', $current_user->ID );
+			printf('<input type="hidden" name="profile_page_id" value="%s">', $post->ID );
+			printf('<input type="hidden" name="cv_url" value="%s">', esc_attr( $cv_url ) );
+			print('<button type="submit" name="action" value="cv_download">Download CV</button></form>');
+		} else {
+			printf('<p><a href="%s" class="profile-button">Download CV</a></p>', $cv_url );
+		}
+	}
+
 
 	if ( $current_user->ID == $user->ID ) {
 		printf( '<div class="section sticky toolbar"><form action="%s" method="post">', get_permalink( $options["builder_page_id"] ) );
@@ -46,34 +74,44 @@ if (have_posts()) : while (have_posts()) : the_post();
 		print('</form></div>');
 	}
 
+	if ( ltp_is_wpp() ) {
+		printf( '<div class="section sticky toolbar"><form action="%s" method="post">', $_SERVER["REQUEST_URI"] );
+		printf('<input type="hidden" name="user_id" value="%s">', $current_user->ID );
+		printf('<input type="hidden" name="profile_page_id" value="%s">', $post->ID );
+		if ( ltp_actions::is_saved( $current_user->ID, $post->ID ) ) {
+			printf('<button name="action" value="remove">Remove</button>');
+		} else {
+			printf('<button name="action" value="save">Save</button>');
+		}
+		print('</form></div>')
+	}
+
 	print('<div class="ltp-profile-wrap"><div class="vcard">');
 
 	/* photo */
-	$photo_ID = get_user_meta( $current_user->ID, 'photo', true );
+	$photo_ID = get_user_meta( $user->ID, 'photo', true );
 	if ( intval( $photo_ID) > 0 ) {
 		$photo_thumb = wp_get_attachment_image_src( $photo_ID, 'thumbnail' );
 		$photo_large = wp_get_attachment_image_src( $photo_ID, 'large' );
 		printf('<div class="photo"><a href="%s" title="%s"><img src="%s"></a></div>', $photo_large[0], esc_attr($post->post_title), $photo_thumb[0] );
 	}
 	printf('<h2 class="full-name">%s</h2>', $post->post_title);
-	printf('<p><strong>Qualifications:</strong> %s</p>', get_user_meta( $current_user->ID, 'qualifications', true) );
+	printf('<p><strong>Qualifications:</strong> %s</p>', get_user_meta( $user->ID, 'qualifications', true) );
 	$loc = get_user_meta( $current_user->ID, 'region', true );
 	if ( is_array($loc) && count($loc) && $loc[0] !== 'null' ) {
 		printf('<p><strong>Current location:</strong> %s</p>', $loc[0] );
 	}
-	printf('<p><strong>Willing to work in:</strong> %s</p>', implode(", ", get_user_meta( $current_user->ID, 'desired_region', true) ) );
-	$exp = get_user_meta( $current_user->ID, 'experience', true );
+	printf('<p><strong>Willing to work in:</strong> %s</p>', implode(", ", get_user_meta( $user->ID, 'desired_region', true) ) );
+	$exp = get_user_meta( $user->ID, 'experience', true );
 	if ( is_array($exp) && count($exp) && $exp[0] !== 'null' ) {
 		printf('<p><strong>Experience (years):</strong> %s</p>',  $exp[0]);
 	}
-	printf('<p><strong>Expertise:</strong> %s</p>', implode(", ", get_user_meta( $current_user->ID, 'expertise', true) ) );
-	$cv_ID = get_user_meta( $current_user->ID, 'cv', true );
-	if ( $cv_ID !== '' ) {
-		$cv_url = get_attachment_link( $cv_ID );
-		printf('<p><a href="%s" class="profile-button">Download CV</a></p>', $cv_url );
+	printf('<p><strong>Expertise:</strong> %s</p>', implode(", ", get_user_meta( $user->ID, 'expertise', true) ) );
+	if ( ! ltp_is_wpp() ) {
+		print($cv_button);
 	}
 	print('</div>');
-	print( apply_filters('the_content', get_user_meta( $current_user->ID, 'statement', true ) ) );
+	print( apply_filters('the_content', get_user_meta( $user->ID, 'statement', true ) ) );
 	print('<h2 class="showcase-title">Student Creative/Analytical Showcase</h2>');
 	print('<div class="showcase-thumbs">');
 
@@ -81,7 +119,7 @@ if (have_posts()) : while (have_posts()) : the_post();
 	$full_text = array();
 	for ( $i = 1; $i <= 3; $i++ ) {
 		$full_text["sc" . $i] = sprintf( '<div class="showcase" id="showcase-%d"><h3>%s</h3>', $i, get_user_meta( $current_user->ID, 'showcase' . $i . '_title', true ) );
-		$image_ID = get_user_meta( $current_user->ID, 'showcase' . $i . '_image', true );
+		$image_ID = get_user_meta( $user->ID, 'showcase' . $i . '_image', true );
 		$showcase_thumb_url = $showcase_embed = false;
 		if ( intval( $image_ID ) > 0 ) {
 			$showcase_thumb = wp_get_attachment_image_src( $image_ID, 'thumbnail' );
@@ -91,7 +129,7 @@ if (have_posts()) : while (have_posts()) : the_post();
 				$showcase_embed = sprintf('<img class="showcase-large" src="%s">', $showcase_large[0]);
 			}
 		}
-		$video_url = get_user_meta( $current_user->ID, 'showcase' . $i . '_video', true );
+		$video_url = get_user_meta( $user->ID, 'showcase' . $i . '_video', true );
 		if ( $video_url !== '' ) {
 			if ( preg_match( '%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i', $video_url, $match ) ) {
 				$video_id = $match[1];
@@ -123,8 +161,8 @@ if (have_posts()) : while (have_posts()) : the_post();
 		if ( $showcase_embed ) {
 			$full_text["sc" . $i] .= $showcase_embed;
 		}
-		$full_text["sc" . $i] .= apply_filters( 'the_content', get_user_meta( $current_user->ID, 'showcase' . $i . '_text', true ) );
-		$file_ID = get_user_meta( $current_user->ID, 'showcase' . $i . '_file', true );
+		$full_text["sc" . $i] .= apply_filters( 'the_content', get_user_meta( $user->ID, 'showcase' . $i . '_text', true ) );
+		$file_ID = get_user_meta( $user->ID, 'showcase' . $i . '_file', true );
 		if ( intval( $file_ID ) > 0 ) {
 			$file_url = wp_get_attachment_url( $file_ID );
 			if ( $file_url ) {

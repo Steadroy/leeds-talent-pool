@@ -36,10 +36,4 @@ $theme_options = get_uol_theme_options();
         }
         ?>
 
-        <div class="section-sidebar nav">
-            <div class="section-sidebar-content">
-            <?php ltp_sidebars::sidebar(); ?>
-            </div>
-        </div>
-
         <div class="content-main">

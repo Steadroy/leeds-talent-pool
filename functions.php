@@ -73,7 +73,7 @@ if ( ! class_exists( 'leeds_talent_pool' ) ) {
 			require_once( dirname(__FILE__) . '/lib/filters.php' );
 
 			// require the class to provide sidebars
-			require_once( dirname(__FILE__) . '/lib/sidebars.php' );
+			//require_once( dirname(__FILE__) . '/lib/sidebars.php' );
 
 			// hide admin bar from front end
 			add_filter('show_admin_bar', '__return_false');

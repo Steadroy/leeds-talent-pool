@@ -65,6 +65,30 @@ if ( ! class_exists( 'ltp_actions' ) ) {
 		}
 
 		/**
+		 * saves any actions from the UI
+		 */
+		public static function save_actions()
+		{
+			if ( isset( $_REQUEST["action"] ) && isset( $_REQUEST["profile_page_id"] ) ) {
+				global $current_user;
+				$user_id = ( isset( $_REQUEST["user_id"] ) ) ? $_REQUEST["user_id"] : $current_user->ID;
+				$profile_page_id = $_REQUEST["profile_page_id"];
+				switch ( $_REQUEST["action"] ) {
+					case 'cv_download':
+						self::log_cv_download( $user_id, $profile_page_id );
+						wp_redirect( $_REQUEST["cv_url"] );
+						break;
+					case 'save':
+						self::log_cv_download( $user_id, $profile_page_id );
+						break;
+					case 'remove':
+						self::log_cv_download( $user_id, $profile_page_id );
+						break;
+				}
+			}
+		}
+
+		/**
 		 * inserts an entry into the logger
 		 * @var array An array containing the following members:
 		 *  - user_id (optional, will defaulkt to current user if not supplied)
@@ -145,11 +169,21 @@ if ( ! class_exists( 'ltp_actions' ) ) {
 		}
 
 		/**
+		 * checks to see whether a profile has been saved by a user
+		 */
+		public static function is_saved( $user_id, $profile_page_id )
+		{
+			global $wpdb;
+			$tablename = self::get_data_tablename();
+			return $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) FROM $tablename WHERE `user_id` = %d AND `profile_page_id` = %d AND `entry_type` = 'saved';", $user_id, $profile_page_id ) );
+		}
+
+		/**
 		 * saves a profile to the users "basket"
 		 * @var integer user id
 		 * @var integer profile page ID	 
 		 */
-		public static function save_profile( $user_id, $profile_page_id )
+		private static function save_profile( $user_id, $profile_page_id )
 		{
 			self::log( array(
 				"user_id" => $user_id,
@@ -163,7 +197,7 @@ if ( ! class_exists( 'ltp_actions' ) ) {
 		 * @var integer user id
 		 * @var integer profile page ID	 
 		 */
-		public static function remove_profile( $user_id, $profile_page_id )
+		private static function remove_profile( $user_id, $profile_page_id )
 		{
 			global $wpdb;
 			$tablename = self::get_data_tablename();
@@ -181,6 +215,20 @@ if ( ! class_exists( 'ltp_actions' ) ) {
 		}
 
 		/**
+		 * logs a CV download for a single profile
+		 * @var integer user id
+		 * @var integer profile page ID	 
+		 */
+		private static function log_cv_download( $user_id, $profile_page_id )
+		{
+			self::log( array(
+				"user_id" => $user_id,
+				"profile_page_id" => $profile_page_id,
+				"entry_type" => "cv_download"
+			) );
+		}
+		
+		/**
 		 * logs a view for a single profile
 		 * @var integer user id
 		 * @var integer profile page ID	 
@@ -193,21 +241,6 @@ if ( ! class_exists( 'ltp_actions' ) ) {
 				"entry_type" => "view"
 			) );
 		}
-
-		/**
-		 * logs a CV download for a single profile
-		 * @var integer user id
-		 * @var integer profile page ID	 
-		 */
-		public static function log_cv_download( $user_id, $profile_page_id )
-		{
-			self::log( array(
-				"user_id" => $user_id,
-				"profile_page_id" => $profile_page_id,
-				"entry_type" => "cv_download"
-			) );
-		}
-		
 
 		/**
 		 * gets the number of views of a profile
@@ -232,9 +265,48 @@ if ( ! class_exists( 'ltp_actions' ) ) {
 		}
 
 		/**
-		 * gets the number of times a profile has been saved
+		 * gets the number of saves of a profile
+		 * @var integer profile page ID
 		 */
+		public static function get_saves( $profile_page_id )
+		{
+			global $wpdb;
+			$tablename = self::get_data_tablename();
+			return $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) FROM $tablename WHERE `profile_page_id` = %d AND `entry_type` = 'saved'", $profile_page_id ) );
+		}
 
+		/**
+		 * gets the number of saves of a profile by username
+		 * @var integer profile page ID
+		 */
+		public static function get_saves_by_username( $profile_username )
+		{
+			global $wpdb;
+			$tablename = self::get_data_tablename();
+			return $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) FROM $tablename WHERE `profile_username` = %s AND `entry_type` = 'saved'", $profile_username ) );
+		}
+
+		/**
+		 * gets the number of downloads of a cv
+		 * @var integer profile page ID
+		 */
+		public static function get_downloads( $profile_page_id )
+		{
+			global $wpdb;
+			$tablename = self::get_data_tablename();
+			return $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) FROM $tablename WHERE `profile_page_id` = %d AND `entry_type` = 'cv_download'", $profile_page_id ) );
+		}
+
+		/**
+		 * gets the number of downloads of a cv by username
+		 * @var integer profile page ID
+		 */
+		public static function get_downloads_by_username( $profile_username )
+		{
+			global $wpdb;
+			$tablename = self::get_data_tablename();
+			return $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) FROM $tablename WHERE `profile_username` = %s AND `entry_type` = 'cv_download'", $profile_username ) );
+		}
 	}
 	ltp_actions::register();
 }
