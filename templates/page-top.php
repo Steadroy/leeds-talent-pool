@@ -26,11 +26,15 @@ $theme_options = get_uol_theme_options();
 
         <h1><a href="<?php echo home_url( '/' ); ?>" title="<?php echo esc_attr( get_bloginfo( 'name', 'display' ) ); ?>" rel="home"><span><?php bloginfo( 'name' ); ?></span></a></h1>
       
-        <?php wp_nav_menu( array(
-            'theme_location' => 'tabs',
-            'menu_class' => 'nav-main',
-            'depth' => 1
-        ) ); ?>
+        <?php 
+        if ( ltp_is_admin() ) {
+            wp_nav_menu( array(
+                'theme_location' => 'tabs',
+                'menu_class' => 'nav-main',
+                'depth' => 1
+            ) );
+        }
+        ?>
 
         <div class="section-sidebar nav">
             <div class="section-sidebar-content">

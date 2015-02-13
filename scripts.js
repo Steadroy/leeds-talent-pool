@@ -3230,16 +3230,16 @@
 			checkCompletion();
 		});
 		checkCompletion();
+		$('.ppt-preview-button, .ppt-publish-button').on('click', function(e){
+			if ( ! checkName() ) {
+				e.preventDefault();
+				alert('Please fill in your name');
+				$('#firstname').focus();
+				return false;
+			}
+		});
 	}
 	$('.sticky').sticky();
-	$('.ppt-preview-button, .ppt-publish-button').on('click', function(e){
-		if ( ! checkName() ) {
-			e.preventDefault();
-			alert('Please fill in your name');
-			$('#firstname').focus();
-			return false;
-		}
-	});
 	$('.showcase-button').colorbox({
 		inline:true,
 		width:'90%',
