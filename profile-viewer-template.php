@@ -2,7 +2,7 @@
 /*
 Template Name: Profile Viewer Page
 */
-if ( ! isset($_SERVER["HTTPS"] ) ) {
+if ( ! isset($_SERVER["HTTPS"] ) && LTP_FORCE_SSL ) {
 	ltp_redirect_to("viewer");
 }
 

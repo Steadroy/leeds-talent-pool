@@ -47,9 +47,9 @@ if ( ! class_exists( 'ltp_filters' ) ) {
 		/* removes the site sidebar class from the body */
 		public static function remove_site_sidebar( $classes )
 		{
-			//$newclasses = array( 'sidebars-section' );
+			$newclasses = array( 'sidebars-none' );
 			foreach ($classes as $class) {
-				if ( $class !== 'sidebars-site' && $class !== 'sidebars-both' && $class !== 'sidebar-corporate' ) {
+				if ( $class !== 'sidebars-site' && $class !== 'sidebars-both' && $class !== 'sidebar-corporate' && $class !== 'sidebars-section' ) {
 					$newclasses[] = $class;
 				}
 			}

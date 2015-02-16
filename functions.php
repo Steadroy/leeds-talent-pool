@@ -34,8 +34,9 @@ function ltp_is_admin()
 }
 function ltp_redirect_to( $pagename )
 {
+	$options = ltp_options::get_options();
 	$page_url = ltp_get_page_url( $pagename );
-	if ( $page_url ) {
+	if ( $page_url && isset( $options["debug_redirect"] ) && $options["debug_redirect"] ) {
 		wp_redirect( $page_url );
 	}
 }
@@ -45,7 +46,11 @@ function ltp_get_page_url( $pagename )
 	if ( isset( $options[$pagename . "_page_id"] ) ) {
 		$page_url = get_permalink( $options[$pagename . "_page_id"] );
 		if ( $page_url ) {
-			return str_replace(array('connect.leeds.ac.uk', 'http:'), array('pvac-webhost.leeds.ac.uk/connect', 'https:'), $page_url);
+			if ( isset( $options["debug_redirect"] ) && $options["debug_redirect"] ) {
+				return str_replace(array('connect.leeds.ac.uk', 'http:'), array('pvac-webhost.leeds.ac.uk/connect', 'https:'), $page_url);
+			} else {
+				return $page_url;
+			}
 		}
 	}
 	return false;
@@ -62,6 +67,8 @@ if ( ! class_exists( 'leeds_talent_pool' ) ) {
 		{
 			// require the class for the theme options
 			require_once( dirname(__FILE__) . '/lib/options.php' );
+			// get the theme options
+			$options = ltp_options::get_options();
 
 			// require the class to log user actions
 			require_once( dirname(__FILE__) . '/lib/actions.php' );
@@ -88,7 +95,9 @@ if ( ! class_exists( 'leeds_talent_pool' ) ) {
 			add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_scripts' ) );
 
 			// force ssl for site
-			//add_action( 'plugins_loaded', array( __CLASS__, 'force_ssl' ) );
+			if ( isset( $options["debug_ssl"] ) && $options["debug_ssl"] ) {
+				add_action( 'plugins_loaded', array( __CLASS__, 'force_ssl' ) );
+			}
 		}
 
 		/**
@@ -107,7 +116,7 @@ if ( ! class_exists( 'leeds_talent_pool' ) ) {
 						/* upgrade from 0.0.1 */
 				}
 				/* update the version option */
-				//update_option('ltp_theme_version', self::$version);
+				update_option('ltp_theme_version', self::$version);
 			}
 		}
 

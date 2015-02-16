@@ -4,7 +4,7 @@ Template Name: Profile Builder page
 */
 $options = ltp_options::get_options();
 // redirect to https
-if ( ! isset($_SERVER["HTTPS"] ) ) {
+if ( ! isset($_SERVER["HTTPS"] ) && LTP_FORCE_SSL ) {
 	ltp_redirect_to("builder");
 }
 
@@ -72,11 +72,19 @@ if ( isset( $_REQUEST["save"] ) || isset( $_REQUEST["view"] ) || isset( $_REQUES
 			$is_published = ( $user_page->post_status == "publish" ) ? true: false;
 		}
 	} else {
-		// update or publish - only field in page which needs updating is post title
+		// update or publish
 		$args = array(
 			"ID" => $user_page->ID,
-			"post_title" => $_REQUEST["firstname"] . " " . $_REQUEST["surname"],
 		);
+		if ( isset( $_REQUEST["firstname"] ) && isset( $_REQUEST["surname"] ) ) {
+			$args["post_title"] = $_REQUEST["firstname"] . " " . $_REQUEST["surname"];
+			wp_update_user( array( 
+				'ID' => $current_user->ID, 
+				'first_name' => $_REQUEST["firstname"], 
+				'last_name' => $_REQUEST["surname"],
+				'display_name' => $_REQUEST["firstname"] . " " . $_REQUEST["surname"]
+			) );
+		}
 		if ( isset( $_REQUEST["publish"] ) ) {
 			$args["post_status"] = 'publish';
 			$is_published = true;
@@ -89,9 +97,17 @@ if ( isset( $_REQUEST["save"] ) || isset( $_REQUEST["view"] ) || isset( $_REQUES
 	}
 	if ( isset( $_REQUEST["preview"] ) && $user_page ) {
 		$qs = ( $is_published ) ? '?preview=1': '&preview=1';
-		wp_redirect( str_replace('http:', 'https:', get_permalink( $user_page->ID ) ) . $qs );
+		if ( LTP_FORCE_SSL ) {
+			wp_redirect( str_replace('http:', 'https:', get_permalink( $user_page->ID ) ) . $qs );
+		} else {
+			wp_redirect( get_permalink( $user_page->ID ) . $qs );
+		}
 	} elseif (isset( $_REQUEST["view"] ) && $user_page ) {
-		wp_redirect( str_replace('http:', 'https:', get_permalink( $user_page->ID ) ) );
+		if ( LTP_FORCE_SSL ) {
+			wp_redirect( str_replace('http:', 'https:', get_permalink( $user_page->ID ) ) );
+		} else {
+			wp_redirect( get_permalink( $user_page->ID ) );
+		}
 	}
 }
 

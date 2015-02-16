@@ -2,7 +2,7 @@
 /*
 Template Name: Invalid Role page
 */
-if ( ! isset($_SERVER["HTTPS"] ) ) {
+if ( ! isset($_SERVER["HTTPS"] ) && LETP_FORCE_SSL ) {
 	ltp_redirect_to("invalid-role");
 }
 

@@ -17,11 +17,7 @@ if ( is_user_logged_in() ) {
 	}
 } else {
 	ltp_redirect_to('login');
-}	if ( ! ltp_is_student() && ! ltp_is_wpp() ) {
-			ltp_redirect_to("invalid_role");
-		}
-	}
-}
+}	
 ltp_actions::save_actions();
 
 get_header(); 
@@ -46,24 +42,32 @@ if (have_posts()) : while (have_posts()) : the_post();
 	/* start profile output */
 	print('<div class="ltp-profile-viewer">');
 
-	$cv_button = '';
+	// se if a CV has been uploaded
+	$cv_URL = '';
 	$cv_ID = get_user_meta( $user->ID, 'cv', true );
 	if ( $cv_ID !== '' ) {
-		$cv_url = get_attachment_link( $cv_ID );
-		if ( ltp_is_wpp() ) {
-			printf('<form action="%s" method="post">', $_SERVER["REQUEST_URI"] );
-			printf('<input type="hidden" name="user_id" value="%s">', $current_user->ID );
-			printf('<input type="hidden" name="profile_page_id" value="%s">', $post->ID );
-			printf('<input type="hidden" name="cv_url" value="%s">', esc_attr( $cv_url ) );
-			print('<button type="submit" name="action" value="cv_download">Download CV</button></form>');
-		} else {
-			printf('<p><a href="%s" class="profile-button">Download CV</a></p>', $cv_url );
-		}
+		$cv_URL = get_attachment_link( $cv_ID );
 	}
-
-
-	if ( $current_user->ID == $user->ID ) {
-		printf( '<div class="section sticky toolbar"><form action="%s" method="post">', get_permalink( $options["builder_page_id"] ) );
+	// start toolbar output
+	print('<div class="section sticky toolbar">');
+	if ( ltp_is_wpp() ) {
+		// WPP users toolbar
+		printf('<form action="%s" method="post">', $_SERVER["REQUEST_URI"] );
+		printf('<input type="hidden" name="user_id" value="%s">', $current_user->ID );
+		printf('<input type="hidden" name="profile_page_id" value="%s">', $post->ID );
+		if ( $cv_URL ) {
+			printf('<input type="hidden" name="cv_url" value="%s">', esc_attr( $cv_URL ) );
+			print('<button type="submit" name="action" value="cv_download">Download CV</button>');
+		}
+		if ( ltp_actions::is_saved( $current_user->ID, $post->ID ) ) {
+			printf('<button name="action" value="remove">Remove</button>');
+		} else {
+			printf('<button name="action" value="save">Save</button>');
+		}
+		print('</form>');
+	} elseif ( $current_user->ID == $user->ID ) {
+		// student toolbar
+		printf( '<form action="%s" method="post">', get_permalink( $options["builder_page_id"] ) );
 		print( '<button name="return" class="ppt-button ppt-return-button">Return to profile builder</button>' );
 		if ( $post->post_status !== 'publish' ) {
 			print( '<button name="publish" class="ppt-button ppt-publish-button">Publish</button>' );
@@ -71,20 +75,9 @@ if (have_posts()) : while (have_posts()) : the_post();
 			print( '<button name="unpublish" class="ppt-button ppt-unpublish-button">Un-publish</button>' );
 		}
 		print('<p><em>This is how recruiters will see your profile</em></p>');
-		print('</form></div>');
+		print('</form>');
 	}
-
-	if ( ltp_is_wpp() ) {
-		printf( '<div class="section sticky toolbar"><form action="%s" method="post">', $_SERVER["REQUEST_URI"] );
-		printf('<input type="hidden" name="user_id" value="%s">', $current_user->ID );
-		printf('<input type="hidden" name="profile_page_id" value="%s">', $post->ID );
-		if ( ltp_actions::is_saved( $current_user->ID, $post->ID ) ) {
-			printf('<button name="action" value="remove">Remove</button>');
-		} else {
-			printf('<button name="action" value="save">Save</button>');
-		}
-		print('</form></div>')
-	}
+	print('</div>');
 
 	print('<div class="ltp-profile-wrap"><div class="vcard">');
 
@@ -107,8 +100,8 @@ if (have_posts()) : while (have_posts()) : the_post();
 		printf('<p><strong>Experience (years):</strong> %s</p>',  $exp[0]);
 	}
 	printf('<p><strong>Expertise:</strong> %s</p>', implode(", ", get_user_meta( $user->ID, 'expertise', true) ) );
-	if ( ! ltp_is_wpp() ) {
-		print($cv_button);
+	if ( ! ltp_is_wpp() && $cv_URL ) {
+		printf('<p><a href="%s" class="profile-button">Download CV</a></p>', $cv_url );
 	}
 	print('</div>');
 	print( apply_filters('the_content', get_user_meta( $user->ID, 'statement', true ) ) );
