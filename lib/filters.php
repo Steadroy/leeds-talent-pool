@@ -83,13 +83,13 @@ if ( ! class_exists( 'ltp_filters' ) ) {
 				// go through applying filters
 				// if we get a match, continue
 				// student added to output when all filters have been applied
-				if (isset( $_REQUEST["filterby_region"] ) ) {
+				if ( isset( $_REQUEST["filterby_region"] ) ) {
 					$regions = explode( ",", $_REQUEST["filterby_region"] );
 					if ( ! in_array( $student["region"], $regions ) ) {
 						continue;
 					}
 				}
-				if (isset( $_REQUEST["filterby_desired_region"] ) ) {
+				if ( isset( $_REQUEST["filterby_desired_region"] ) ) {
 					$regions = explode( ",", $_REQUEST["filterby_desired_region"] );
 					if ( ! in_array( $student["desired_region"], $regions ) ) {
 						continue;

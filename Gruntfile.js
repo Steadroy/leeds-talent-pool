@@ -18,7 +18,7 @@ module.exports = function(grunt) {
 			themecss: {
 				options: {
 					stripBanners: true,
-					banner: "/*!\nTheme Name: <%= pkg.themename %>\nTheme URI: <%= pkg.homepage %>\nDescription: <%= pkg.description %>\nTemplate: uol-wordpress-theme\nVersion: <%= pkg.version %>\nAuthor: <%= pkg.author %>\n*/\n"
+					banner: "/*!\nTheme Name: <%= pkg.themename %>\nTheme URI: <%= pkg.homepage %>\nDescription: <%= pkg.description %>\nTemplate: uol-wordpress-theme\nVersion: <%= pkg.version %>\nAuthor: <%= pkg.author %>\nGitHub Theme URI: essl-pvac/leeds-talent-pool\n*/\n"
 				},
 				src: ['less/style.min.css'],
 				dest: 'style.css'

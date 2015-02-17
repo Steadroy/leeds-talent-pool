@@ -12,9 +12,9 @@ if ( ! class_exists( 'ltp_template' ) ) {
 		 * gets a user's profile data
 		 * @param integer User ID
 		 */
-		public static function get_user_data( $userid )
+		public static function get_user_data( $user )
 		{
-			$meta = get_user_meta( $userid );
+			$meta = get_user_meta( $user->ID );
 			// put simple string data into $userdata
 			$userdata = array(
 				"user" => $user
@@ -66,7 +66,7 @@ if ( ! class_exists( 'ltp_template' ) ) {
 			return $userdata;
 		}
 
-		public static function ltp_get_vcard( $student )
+		public static function get_vcard( $student, $page_id, $left = false )
 		{
 			$filter_attr = array(
 				"experience",
@@ -74,7 +74,8 @@ if ( ! class_exists( 'ltp_template' ) ) {
 				"desired_region",
 				"expertise"
 			);
-			$classes = "";
+			//$vcard = '<pre>' . print_r($student, true) . '</pre>';
+			$classes = $left ? "left ": "right ";
 			foreach ( $filter_attr as $att ) {
 				if ( isset( $student[$att] ) && is_array( $student[$att] ) && count( $student[$att] ) ) {
 					foreach ( $student[$att]  as $val ) {
@@ -82,13 +83,12 @@ if ( ! class_exists( 'ltp_template' ) ) {
 					}
 				}
 			}
-			$vcard = sprintf( '<div class="ltp-profile-wrap %s"><div class="vcard">', trim( $classes ) );
+			$vcard .= sprintf( '<div class="ltp-profile-wrap %s"><div class="vcard">', trim( $classes ) );
 			// get full name 
 			$fullname = $student["firstname"] . " " . $student["surname"];
 			if ( isset( $student['photo'] ) && intval( $student['photo'] ) > 0 ) {
-				$photo_thumb = wp_get_attachment_image_src( $photo_ID, 'thumbnail' );
-				$photo_large = wp_get_attachment_image_src( $photo_ID, 'large' );
-				$vcard .= sprintf('<div class="photo"><a href="%s" title="%s"><img src="%s"></a></div>', $photo_large[0], esc_attr($fullname), $photo_thumb[0] );
+				$photo_thumb = wp_get_attachment_image_src( $student['photo'], 'thumbnail' );
+				$vcard .= sprintf('<div class="photo"><img title="%s" src="%s"></div>', esc_attr($fullname), $photo_thumb[0] );
 			}
 			$vcard .= sprintf('<h2 class="full-name">%s</h2>', $fullname);
 			if ( isset( $student['qualifications'] ) && $student['qualifications'] !== '' ) {
@@ -106,11 +106,15 @@ if ( ! class_exists( 'ltp_template' ) ) {
 			if ( is_array($student['expertise']) && count($student['expertise']) ) {
 				$vcard .= sprintf('<p><strong>Expertise:</strong> %s</p>', implode(", ", $student['expertise'] ) );
 			}
+			$cv_url = false;
 			if ( $student['cv'] !== '' ) {
-				$cv_url = get_attachment_link( $cv_ID );
-				$vcard .= sprintf('<p><a href="%s" class="profile-button">Download CV</a></p>', $cv_url );
+				$cv_url = wp_get_attachment_url( $student['cv'] );
 			}
-			$vcard .= '</div>';
+			if ( ltp_is_wpp() ) {
+				global $current_user;
+				$vcard .= self::wpp_toolbar( $current_user->ID, $page_id, $cv_url, true );
+			}
+			$vcard .= '</div></div>';
 			return $vcard;
 		}
 		
@@ -137,6 +141,31 @@ if ( ! class_exists( 'ltp_template' ) ) {
 				$toolbar .= '<button name="unpublish" class="ppt-button ppt-unpublish-button">Un-publish</button>';
 			}
 			$toolbar .= '</div>';
+			return $toolbar;
+		}
+
+		/**
+		 * returns a toolbar for wpp users
+		 * present at the top of single profile pages in sticky toolbar, and embedded into vcards on viewer page
+		 */
+		public static function wpp_toolbar( $user_id, $profile_page_id, $cv_URL = false, $link_to_page = false )
+		{
+			$toolbar = sprintf('<form action="%s" method="post">', $_SERVER["REQUEST_URI"] );
+			$toolbar .= sprintf('<input type="hidden" name="user_id" value="%s">', $user_id );
+			$toolbar .= sprintf('<input type="hidden" name="profile_page_id" value="%s">', $profile_page_id );
+			if ( $link_to_page ) {
+				$toolbar .= sprintf('<a class="profile-button" href="%s">View Profile</a>', get_permalink( $profile_page_id ) );
+			}
+			if ( $cv_URL ) {
+				$toolbar .= sprintf('<input type="hidden" name="cv_url" value="%s">', esc_attr( $cv_URL ) );
+				$toolbar .= '<button type="submit" name="action" value="cv_download" class="ppt-button">Download CV</button>';
+			}
+			if ( ltp_data::is_saved( $user_id, $profile_page_id ) ) {
+				$toolbar .= sprintf('<button name="action" value="remove" class="ppt-button">Remove</button>');
+			} else {
+				$toolbar .= sprintf('<button name="action" value="save" class="ppt-button">Save</button>');
+			}
+			$toolbar .= '</form>';
 			return $toolbar;
 		}
 	}

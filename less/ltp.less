@@ -11,55 +11,6 @@
 @input-border: #666;
 @label-bg: #eee;
 
-.rounded-top(@radius: 4px){
-	-webkit-border-top-right-radius: @radius;
-	-webkit-border-top-left-radius: @radius;
-	-moz-border-radius-topright: @radius;
-	-moz-border-radius-topleft: @radius;
-	border-top-right-radius: @radius;
-	border-top-left-radius: @radius;
-	-moz-background-clip: padding; -webkit-background-clip: padding-box; background-clip: padding-box; 
-}
-.rounded-bottom(@radius: 4px){
-	-webkit-border-bottom-right-radius: @radius;
-	-webkit-border-bottom-left-radius: @radius;
-	-moz-border-radius-bottomright: @radius;
-	-moz-border-radius-bottomleft: @radius;
-	border-bottom-right-radius: @radius;
-	border-bottom-left-radius: @radius;
-	-moz-background-clip: padding; -webkit-background-clip: padding-box; background-clip: padding-box; 
-}
-.section-sidebar {
-	.ltp-menu {
-		li {
-			a {
-				padding:1em;
-				background:@button;
-				color:@button-text;
-				font-size:1.2em;
-				&:before {
-					top:1.5em;
-					border-left-color:@button-text;
-				}
-				&:hover,
-				&.active {
-					background:@button-hover;
-					color:@button-text-hover;
-					&:before {
-						border-left-color:@button-text-hover;
-					}
-				}
-			}
-			&:first-child a {
-				.rounded-top();
-			}
-			&:last-child a {
-				.rounded-bottom();
-			}
-			
-		}
-	}
-}
 .content-main {
 	margin-top:2em;
 	background-color:@form-bg;
@@ -90,11 +41,13 @@
 				z-index:9998;
 				margin-top:0;
 				border-top:0;
-				width:98%;
-				padding:.5em 1%;
-				max-width:910px;
+				width:100%;
+				padding:.5em;
+				max-width:900px;
 				border-bottom:1px solid @border;
-
+				p {
+					float:right;
+				}
 				h3 {
 					margin-top:0;
 				}
@@ -122,31 +75,6 @@
 				height:2em;
 				background:@meter;
 			}
-		}
-		a#insert-media-button,
-		button.ppt-button,
-		button.ppt-media-single-image,
-		button.ppt-media-multiple-images,
-		button.ppt-media-file,
-		.profile-button {
-			text-decoration:none;
-			border:0;
-			.rounded(4px);
-			background-color:@button;
-			color:@button-text;
-			&:hover {
-				background:@button-hover;
-				color:@button-text-hover;
-			}
-		}
-		button.ppt-media-single-image,
-		button.ppt-media-multiple-images,
-		button.ppt-button,
-		button.ppt-media-file,
-		.profile-button {
-			padding:0.5em;
-			font-size:1.2em;
-			margin-right:1em;
 		}
 		input[type=text],
 		textarea {
@@ -209,10 +137,70 @@
 			}
 		}
 	}
-	.ltp-profile-viewer {
-		.section.sticky {
-			padding:.5em 1%;
+	a#insert-media-button,
+	button.ppt-button,
+	button.ppt-media-single-image,
+	button.ppt-media-multiple-images,
+	button.ppt-media-file,
+	.profile-button {
+		text-decoration:none;
+		border:0;
+		.rounded(4px);
+		background-color:@button;
+		color:@button-text;
+		&:hover {
+			background:@button-hover;
+			color:@button-text-hover;
 		}
+	}
+	button.ppt-media-single-image,
+	button.ppt-media-multiple-images,
+	button.ppt-button,
+	button.ppt-media-file,
+	.profile-button {
+		display:inline-block;
+		vertical-align:middle;
+		padding:0.5em;
+		font-size:1.2em;
+		margin-right:1em;
+		line-height:1.2em;
+	}
+	.ltp-profiles {
+		.clearfix();
+		.ltp-profile-wrap {
+			width:45%;
+			&.left {
+				float:left;
+				clear:both;
+			}
+			&.right {
+				float:right;
+			}
+		}
+	}
+	.vcard {
+		padding:0 2% 1em;
+		margin:0 1em 1em 0;
+		background:#fff;
+		border:1px solid @border;
+		border-top:3em solid @orange;
+		p {
+			margin:.5em 0;
+		}
+		.photo {
+			margin-top:-3em;
+			text-align:center;
+			img {
+				width:60%;
+				height:auto;
+				margin:0 auto;
+			}
+		}
+		h2 {
+			padding-left:0;
+		}
+	}
+	.ltp-profile-viewer {
 		.ltp-profile-wrap {
 			padding:1em;
 		}
@@ -220,25 +208,6 @@
 			width:40%;
 			padding:0 2%;
 			float:left;
-			margin:0 1em 1em 0;
-			background:#fff;
-			border:1px solid @border;
-			border-top:3em solid @orange;
-			p {
-				margin:.5em 0;
-			}
-			.photo {
-				margin-top:-3em;
-				text-align:center;
-				img {
-					width:60%;
-					height:auto;
-					margin:0 auto;
-				}
-			}
-			h2 {
-				padding-left:0;
-			}
 		}
 		h2.showcase-title {
 			padding-left:0;

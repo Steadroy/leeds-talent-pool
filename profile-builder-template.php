@@ -4,7 +4,7 @@ Template Name: Profile Builder page
 */
 $options = ltp_options::get_options();
 // redirect to https
-if ( ! isset($_SERVER["HTTPS"] ) && (isset( $options["debug_ssl"] ) && intval( $options["debug_ssl"] ) > 0 ) {
+if ( ! isset($_SERVER["HTTPS"] ) && ( isset( $options["debug_ssl"] ) && intval( $options["debug_ssl"] ) > 0 ) ) {
 	ltp_redirect_to("builder");
 }
 
@@ -97,13 +97,13 @@ if ( isset( $_REQUEST["save"] ) || isset( $_REQUEST["view"] ) || isset( $_REQUES
 	}
 	if ( isset( $_REQUEST["preview"] ) && $user_page ) {
 		$qs = ( $is_published ) ? '?preview=1': '&preview=1';
-		if ( LTP_FORCE_SSL ) {
+		if ( isset( $options["debug_ssl"] ) && intval( $options["debug_ssl"] ) > 0 ) {
 			wp_redirect( str_replace('http:', 'https:', get_permalink( $user_page->ID ) ) . $qs );
 		} else {
 			wp_redirect( get_permalink( $user_page->ID ) . $qs );
 		}
 	} elseif (isset( $_REQUEST["view"] ) && $user_page ) {
-		if ( LTP_FORCE_SSL ) {
+		if ( isset( $options["debug_ssl"] ) && intval( $options["debug_ssl"] ) > 0 ) {
 			wp_redirect( str_replace('http:', 'https:', get_permalink( $user_page->ID ) ) );
 		} else {
 			wp_redirect( get_permalink( $user_page->ID ) );
@@ -121,7 +121,7 @@ if ( have_posts() ) while ( have_posts() ) : the_post();
 
 		//printf( '<p class="compulsory">Compulsory field</p>');
 
-		echo leeds_talent_pool::profile_toolbar( $has_page, $is_published );
+		echo ltp_template::profile_toolbar( $has_page, $is_published );
 		
 		// student photo
 		print('<div class="section top"><h3>1. Upload Photo</h3>');
@@ -153,6 +153,7 @@ if ( have_posts() ) while ( have_posts() ) : the_post();
 		//personal Statement
 		print( '<div class="section"><h3>6. Personal Statement</h3>' );
 		echo PeoplePostType::get_profile_field_control( array('field_name' => 'statement') );
+		print( '<h4>Curriculum Vitae</h4><p>Upload a copy of your C.V. in PDF format</p>');
 		echo PeoplePostType::get_profile_field_control( array('field_name' => 'cv') );
 		print( '</div>' );
 

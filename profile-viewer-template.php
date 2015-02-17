@@ -3,7 +3,7 @@
 Template Name: Profile Viewer Page
 */
 $options = ltp_options::get_options();
-if ( ! isset($_SERVER["HTTPS"] ) && (isset( $options["debug_ssl"] ) && intval( $options["debug_ssl"] ) > 0 ) {
+if ( ! isset($_SERVER["HTTPS"] ) && ( isset( $options["debug_ssl"] ) && intval( $options["debug_ssl"] ) > 0 ) ) {
 	ltp_redirect_to("viewer");
 }
 
@@ -27,8 +27,11 @@ $people_pages = get_posts(array(
 	'nopaging' => true,
 	'post_status' => $post_status
 ));
+ltp_data::save_actions();
 
 get_header();
+
+print('<div class="ltp-profiles">');
 
 if ( count( $people_pages ) ) {
 
@@ -36,42 +39,32 @@ if ( count( $people_pages ) ) {
 	$students = array();
 	$users = get_users( array(
 		'role' => 'student',
-		'fields' => 'ID'
+		'fields' => 'all'
 	) );
+
 	if ( count( $users ) ) {
-		foreach ( $users as $userid ) {
-			$students[$user->user_login] = leeds_talent_pool::get_user_data( $userid );
+		foreach ( $users as $user ) {
+			$students[$user->user_login] = ltp_template::get_user_data( $user );
 		}
 	}
-	print('<pre>' . print_r($students, true) . '</pre>');
 
 	// apply filters on $students to see which pages are to be displayed
-	$to_display = apply_filters( 'ltp_results', $students );
-	if ( ! isset( $_REQUEST["filter"] ) ) {
-		$to_display = $students;
-	} else {
-		switch ( $_REQUEST["filter"] ) {
-			case "region":
-
-				break;
-			case "desired_region":
-
-				break;
-			case "expertise":
-
-		}
-	}
-
+	//$to_display = apply_filters( 'ltp_results', $students );
+	$count = 0;
 	// loop through people pages displaying users
 	foreach ( $people_pages as $post ) {
 		$username = get_post_meta($post->ID, 'wp_username', true);
-		if ( in_array( $username, array_keys( $to_display ) ) ) {
+		if ( in_array( $username, array_keys( $students ) ) ) {
 			// display user data
-			$userdata = $to_display[$username];
+			if ( trim( $students[$username]["firstname"] ) !== '' && trim( $students[$username]["surname"] ) !== '' ) {
+				$left = ( $count % 2 === 0 );
+				print( ltp_template::get_vcard( $students[$username], $post->ID, $left ) );
+				$count++;
+			}
 		}
 	}
 } else {
 	print('<p>No profiles have been added to the system yet - please try again later&hellip;</p>');
 }
-
+print('</div>');
 get_footer();
