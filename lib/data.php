@@ -1,13 +1,13 @@
 <?php
 /**
- * action logging class for the Leeds Talent Pool theme
- * This class logs any access to user profile pages by users with the wppusers role
- * and enables users with the wppusers role to save profiles in a basket
+ * data logging class for the Leeds Talent Pool theme
+ * This class logs any access to user profile pages by users with the wppuser role
+ * and enables users with the wppuser role to save profiles in a basket
  */
 
-if ( ! class_exists( 'ltp_actions' ) ) {
+if ( ! class_exists( 'ltp_data' ) ) {
 
-	class ltp_actions
+	class ltp_data
 	{
 		/**
 		 * registers all actions with the wordpress API
@@ -79,10 +79,10 @@ if ( ! class_exists( 'ltp_actions' ) ) {
 						wp_redirect( $_REQUEST["cv_url"] );
 						break;
 					case 'save':
-						self::log_cv_download( $user_id, $profile_page_id );
+						self::save_profile( $user_id, $profile_page_id );
 						break;
 					case 'remove':
-						self::log_cv_download( $user_id, $profile_page_id );
+						self::remove_profile( $user_id, $profile_page_id );
 						break;
 				}
 			}
@@ -308,5 +308,5 @@ if ( ! class_exists( 'ltp_actions' ) ) {
 			return $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) FROM $tablename WHERE `profile_username` = %s AND `entry_type` = 'cv_download'", $profile_username ) );
 		}
 	}
-	ltp_actions::register();
+	ltp_data::register();
 }

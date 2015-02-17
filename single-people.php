@@ -18,7 +18,7 @@ if ( is_user_logged_in() ) {
 } else {
 	ltp_redirect_to('login');
 }	
-ltp_actions::save_actions();
+ltp_data::save_actions();
 
 get_header(); 
 
@@ -36,7 +36,7 @@ if (have_posts()) : while (have_posts()) : the_post();
 
 	// log view if wpp user
 	if ( ltp_is_wpp() ) {
-		ltp_actions::log_view($current_user->ID, $post->ID);
+		ltp_data::log_view($current_user->ID, $post->ID);
 	}
 
 	/* start profile output */
@@ -59,7 +59,7 @@ if (have_posts()) : while (have_posts()) : the_post();
 			printf('<input type="hidden" name="cv_url" value="%s">', esc_attr( $cv_URL ) );
 			print('<button type="submit" name="action" value="cv_download">Download CV</button>');
 		}
-		if ( ltp_actions::is_saved( $current_user->ID, $post->ID ) ) {
+		if ( ltp_data::is_saved( $current_user->ID, $post->ID ) ) {
 			printf('<button name="action" value="remove">Remove</button>');
 		} else {
 			printf('<button name="action" value="save">Save</button>');

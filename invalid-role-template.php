@@ -2,7 +2,9 @@
 /*
 Template Name: Invalid Role page
 */
-if ( ! isset($_SERVER["HTTPS"] ) && LETP_FORCE_SSL ) {
+$options = ltp_options::get_options();
+// redirect to https
+if ( ! isset($_SERVER["HTTPS"] ) && (isset( $options["debug_ssl"] ) && intval( $options["debug_ssl"] ) > 0 ) {
 	ltp_redirect_to("invalid-role");
 }
 

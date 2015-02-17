@@ -2,11 +2,11 @@
 /*
 Template Name: Profile Viewer Page
 */
-if ( ! isset($_SERVER["HTTPS"] ) && LTP_FORCE_SSL ) {
+$options = ltp_options::get_options();
+if ( ! isset($_SERVER["HTTPS"] ) && (isset( $options["debug_ssl"] ) && intval( $options["debug_ssl"] ) > 0 ) {
 	ltp_redirect_to("viewer");
 }
 
-$options = ltp_options::get_options();
 // redirect users with incorrect roles
 if ( is_user_logged_in() ) {
 	if ( ! ltp_is_admin() ) {
@@ -36,21 +36,30 @@ if ( count( $people_pages ) ) {
 	$students = array();
 	$users = get_users( array(
 		'role' => 'student',
-		'fields' => 'all_with_meta'
+		'fields' => 'ID'
 	) );
 	if ( count( $users ) ) {
-		foreach ( $users as $user ) {
-			$students[$user->user_login] = leeds_talent_pool::get_user_data( $user );
+		foreach ( $users as $userid ) {
+			$students[$user->user_login] = leeds_talent_pool::get_user_data( $userid );
 		}
 	}
-	//print('<pre>' . print_r($students, true) . '</pre>');
+	print('<pre>' . print_r($students, true) . '</pre>');
 
-	// apply filters on $stiudents to see which pages are to be displayed
-	$to_display = array();
+	// apply filters on $students to see which pages are to be displayed
+	$to_display = apply_filters( 'ltp_results', $students );
 	if ( ! isset( $_REQUEST["filter"] ) ) {
 		$to_display = $students;
 	} else {
+		switch ( $_REQUEST["filter"] ) {
+			case "region":
 
+				break;
+			case "desired_region":
+
+				break;
+			case "expertise":
+
+		}
 	}
 
 	// loop through people pages displaying users
