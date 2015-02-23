@@ -64,6 +64,32 @@
 			return false;
 		}
 		return true;
+	},
+	removeFilters = function()
+	{
+		$('#profile-filters :checkbox').prop('checked', false);
+		checkCheckboxLists();
+		if ($('#profile-filters').data('showing-filters')) {
+			$('#profile-filters').slideUp(function(){
+				$('#profile-filters').data('showing-filters', false);
+			});
+		}
+		$('#profile-filter').text('Filter Profiles');
+		$('.ltp-profile-wrap').show();
+		rearrangeProfiles();
+		$('.ltp-profiles p.message').remove();
+	},
+	rearrangeProfiles = function()
+	{
+		var count = 0;
+		$('.ltp-profile-wrap:visible').each(function(){
+			if (count % 2 === 0) {
+				$(this).removeClass('right').addClass('left');
+			} else {
+				$(this).removeClass('left').addClass('right');
+			}
+			count++;
+		});
 	};
 	if ($('.ltp-profile-builder').length) {
 		$('.checkbox-list').jScrollPane({verticalGutter:0});
@@ -80,6 +106,111 @@
 				$('#firstname').focus();
 				return false;
 			}
+		});
+	}
+	if ($('#profile-filters').length) {
+		// auto-check experience with greater value
+		$('input[name=experience]').on('click', function(){
+			var checkedMin = false;
+			$('input[name=experience]').each(function(){
+				if ($(this).is(':checked')) {
+					checkedMin = true;
+				}
+				if ( checkedMin ) {
+					$(this).prop('checked', true);
+				}
+			});
+			checkCheckboxLists();
+		});
+		checkCheckboxLists();
+		$('#saved-filter').on('click', function(e){
+			e.preventDefault();
+			removeFilters();
+			if ($(this).data('showing-saved')) {
+				$('.ltp-profile-wrap').show();
+				rearrangeProfiles();
+				$(this).text('View saved profiles');
+				$(this).data('showing-saved', false);
+				$('#profile-filter').show();
+			} else {
+				$('#profile-filter').hide();
+				if ($('.ltp-profile-wrap.saved').length) {
+					$('.ltp-profile-wrap').each(function(){
+						if ($(this).hasClass('saved')) {
+							$(this).show();
+						} else {
+							$(this).hide();
+						}
+					});
+				} else {
+					$('.ltp-profile-wrap').hide();
+					$('.ltp-profiles').append('<p class="message">No profiles have been saved</p>');
+				}
+				rearrangeProfiles();
+				$(this).text('Show all profiles');
+				$(this).data('showing-saved', true);
+			}
+		});
+		$('#profile-filter').on('click', function(e){
+			e.preventDefault();
+			if ($('#profile-filters').data('showing-filters')) {
+				$('.ltp-profiles p.message').remove();
+				// Apply filters button has been clicked
+				if ( ! $('#profile-filters :checked').length ) {
+					removeFilters();
+					return;
+				} else {
+					// see if any filters need to be applied
+					var filters = {};
+					$('#profile-filters :checked').each(function(){
+						if (!filters[$(this).attr('name')]){
+							filters[$(this).attr('name')] = [];
+						}
+						filters[$(this).attr('name')].push($(this).attr('id'));
+					});
+					$('.ltp-profile-wrap').each(function(){
+						var toShow = false;
+						for (var filter in filters) {
+							for ( var i = 0; i < filters[filter].length; i++ ) {
+								if ($(this).hasClass(filters[filter][i])) {
+									toShow = true;
+								}
+							}
+						}
+						if (toShow) {
+							$(this).show();
+						} else {
+							$(this).hide();
+						}
+					});
+					if (!$('.ltp-profile-wrap:visible').length) {
+						$('.ltp-profiles').append('<p class="message">No profiles match your search criteria</p>');
+					} else {
+						rearrangeProfiles();
+					}
+					// change the button text
+					$(this).text('Edit filters');
+					// add button to remove filters
+					$('#remove-filters').show();
+					// hide filter controls
+					$('#profile-filters').slideUp(function(){
+						$('#profile-filters').data('showing-filters', false);
+					});
+				}
+			} else {
+				// add/edit filters button has been clicked
+				$('#profile-filters').show();
+				$('#remove-filters').hide();
+				$(this).text('Apply filters');
+				$('#profile-filters').data('showing-filters', true);
+				$('.checkbox-list').jScrollPane({verticalGutter:0});
+				$('.checkbox-list label').on('click', checkCheckboxLists);
+			}
+		});
+		$('#remove-filters').on('click', function(e){
+			e.preventDefault();
+			removeFilters();
+			$(this).hide();
 		});
 	}
 	$('.sticky').sticky();

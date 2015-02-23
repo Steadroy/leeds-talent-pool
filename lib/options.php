@@ -29,8 +29,9 @@ if ( ! class_exists( 'ltp_options' ) ) {
 		{
 			/* admin */
 			add_menu_page("Connect", "Connect", "manage_options", "connect_admin", array(__CLASS__, "ltp_theme_admin_page"), 'dashicons-migrate', 61 );
+			add_submenu_page("connect_admin", "Connect Admin", "Connect Admin", "manage_options", "connect_admin", array(__CLASS__, "ltp_theme_admin_page") );
 			/* Options */
-			add_submenu_page( "connect_admin", "Connect Options", "Options", "manage_options", "connect_options", array(__CLASS__, "ltp_theme_options_page") );
+			add_submenu_page( "connect_admin", "Connect Options", "Connect Options", "manage_options", "connect_options", array(__CLASS__, "ltp_theme_options_page") );
 		}
 
 		/**

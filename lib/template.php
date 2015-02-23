@@ -68,6 +68,9 @@ if ( ! class_exists( 'ltp_template' ) ) {
 
 		public static function get_vcard( $student, $page_id, $left = false )
 		{
+			global $current_user;
+
+			$vcard = '';
 			$filter_attr = array(
 				"experience",
 				"region",
@@ -79,9 +82,12 @@ if ( ! class_exists( 'ltp_template' ) ) {
 			foreach ( $filter_attr as $att ) {
 				if ( isset( $student[$att] ) && is_array( $student[$att] ) && count( $student[$att] ) ) {
 					foreach ( $student[$att]  as $val ) {
-						$classes .= $att . '-' . str_replace(' ', '-', $val) . ' ';
+						$classes .= $att . '-' . preg_replace('/[^a-zA-Z]+/', '', $val) . ' ';
 					}
 				}
+			}
+			if ( ltp_data::is_saved( $current_user->ID, $page_id ) ) {
+				$classes .= ' saved';
 			}
 			$vcard .= sprintf( '<div class="ltp-profile-wrap %s"><div class="vcard">', trim( $classes ) );
 			// get full name 
@@ -111,8 +117,8 @@ if ( ! class_exists( 'ltp_template' ) ) {
 				$cv_url = wp_get_attachment_url( $student['cv'] );
 			}
 			if ( ltp_is_wpp() ) {
-				global $current_user;
-				$vcard .= self::wpp_toolbar( $current_user->ID, $page_id, $cv_url, true );
+				
+				$vcard .= self::wpp_profile_toolbar( $current_user->ID, $page_id, $cv_url, true );
 			}
 			$vcard .= '</div></div>';
 			return $vcard;
@@ -145,10 +151,10 @@ if ( ! class_exists( 'ltp_template' ) ) {
 		}
 
 		/**
-		 * returns a toolbar for wpp users
-		 * present at the top of single profile pages in sticky toolbar, and embedded into vcards on viewer page
+		 * returns a toolbar for wpp users when viewing a single profile page, 
+		 * or used for buttons on individual profiles in view mode
 		 */
-		public static function wpp_toolbar( $user_id, $profile_page_id, $cv_URL = false, $link_to_page = false )
+		public static function wpp_profile_toolbar( $user_id, $profile_page_id, $cv_URL = false, $link_to_page = false )
 		{
 			$toolbar = sprintf('<form action="%s" method="post">', $_SERVER["REQUEST_URI"] );
 			$toolbar .= sprintf('<input type="hidden" name="user_id" value="%s">', $user_id );
@@ -158,15 +164,76 @@ if ( ! class_exists( 'ltp_template' ) ) {
 			}
 			if ( $cv_URL ) {
 				$toolbar .= sprintf('<input type="hidden" name="cv_url" value="%s">', esc_attr( $cv_URL ) );
-				$toolbar .= '<button type="submit" name="action" value="cv_download" class="ppt-button">Download CV</button>';
+				$toolbar .= '<button class="profile-button" name="action" value="cv_download" class="ppt-button">Download CV</button>';
 			}
 			if ( ltp_data::is_saved( $user_id, $profile_page_id ) ) {
 				$toolbar .= sprintf('<button name="action" value="remove" class="ppt-button">Remove</button>');
 			} else {
 				$toolbar .= sprintf('<button name="action" value="save" class="ppt-button">Save</button>');
 			}
+			if ( ! $link_to_page && ltp_data::has_saved( $user_id ) ) {
+				$toolbar .= sprintf('<button name="action" value="view_saved" class="ppt-button">View Saved Profiles</button>');
+			}
 			$toolbar .= '</form>';
 			return $toolbar;
 		}
+
+		/**
+		 * returns a sticky toolbar for WPP users which will appear at the top of the profile viewer page
+		 * includes filters and links to saved profiles, etc.
+		 */
+		public static function wpp_toolbar( )
+		{
+			global $current_user;
+			$toolbar = '';
+			if ( ltp_data::has_saved( $current_user->ID ) ) {
+				$toolbar .= sprintf('<a href="#" id="saved-filter" class="profile-button">View Saved Profiles</button>');
+			}
+			// add filters
+			$toolbar .= sprintf('<a href="#" id="profile-filter" class="profile-button">Filter Profiles</a>');
+			$toolbar .= sprintf('<a href="#" id="remove-filters" class="profile-button">Remove filters</a>');
+			$toolbar .= '<div id="current-filters"></div>';
+			$toolbar .= '<div id="profile-filters">';
+			$fields = PeoplePostType::get_profile_fields();
+			$filters = array( 
+				"experience" => array(
+					"label" => "Minimum experience (years):",
+					"options" => array()
+				), 
+				"region" => array(
+					"label" => "Show students based in:",
+					"options" => array()
+				),
+				"desired_region" => array(
+					"label" => "Show students wishing to work in:",
+					"options" => array()
+				),
+				"expertise" => array(
+					"label" => "Show students with expertise in:",
+					"options" => array()
+				)
+			);
+			// get options for each filter
+			foreach ( $fields as $field ) {
+				if ( in_array( $field["name"], array_keys( $filters ) ) ) {
+					$filters[$field["name"]]["options"] = $field["options"];
+				}
+			}
+			foreach ( $filters as $filter => $data ) {
+				if ( count( $data["options"] ) ) {
+					$toolbar .= sprintf('<div class="filter-list"><p class="label">%s</p><div class="checkbox-list">', $data["label"] );
+					foreach ( $data["options"] as $option ) {
+						$option_value = $filter . '-' . preg_replace('/[^a-zA-Z0-9]+/', '', $option);
+						$toolbar .= sprintf('<label for="%s"><input type="checkbox" name="%s" id="%s" value="1"> %s</label>', $option_value, $filter, $option_value, $option );
+					}
+					$toolbar .= '</div></div>';
+				}
+			}
+			$toolbar .= '</div>';
+			$toolbar .= '</form>';
+			return $toolbar;
+		}
+
+
 	}
 }

@@ -31,6 +31,10 @@ ltp_data::save_actions();
 
 get_header();
 
+print('<div class="section sticky toolbar">');
+print( ltp_template::wpp_toolbar() );
+print('</div>');
+
 print('<div class="ltp-profiles">');
 
 if ( count( $people_pages ) ) {

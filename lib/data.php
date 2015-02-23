@@ -91,7 +91,7 @@ if ( ! class_exists( 'ltp_data' ) ) {
 		/**
 		 * inserts an entry into the logger
 		 * @var array An array containing the following members:
-		 *  - user_id (optional, will defaulkt to current user if not supplied)
+		 *  - user_id (optional, will default to current user if not supplied)
 		 *  - profile_page_id (mandatory)
 		 *  - entry_type (optional, will default to 'log')
 		 */
@@ -119,7 +119,7 @@ if ( ! class_exists( 'ltp_data' ) ) {
 				}
 
 				// derive username from page_id
-				$profile_username = get_post_meta( $db_data["profile_page_id"], 'wp_username', true );
+				$profile_username = get_post_meta( $profile_page_id, 'wp_username', true );
 				
 				// make sure we have an entry type
 				$entry_type = ( ! isset( $data["entry_type"] ) ) ? 'log': trim( $data["entry_type"] );
@@ -166,6 +166,16 @@ if ( ! class_exists( 'ltp_data' ) ) {
 					return array();
 				}
 			}
+		}
+
+		/**
+		 * checks to see whether any profiles have been saved by a user
+		 */
+		public static function has_saved( $user_id )
+		{
+			global $wpdb;
+			$tablename = self::get_data_tablename();
+			return $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) FROM $tablename WHERE `user_id` = %d AND `entry_type` = 'saved';", $user_id ) );
 		}
 
 		/**

@@ -28,31 +28,6 @@
 				vertical-align: top;
 			}
 		}
-		.section {
-			border-top:1px solid @border;
-			margin-top:1em;
-			.clearfix;
-			padding:0 1em 1em 1em;
-			&.top {
-				border-top:none;
-			}
-			&.sticky {
-				background-color:@form-bg;
-				z-index:9998;
-				margin-top:0;
-				border-top:0;
-				width:100%;
-				padding:.5em;
-				max-width:900px;
-				border-bottom:1px solid @border;
-				p {
-					float:right;
-				}
-				h3 {
-					margin-top:0;
-				}
-			}
-		}
 		h2 {
 			padding-left:1em;
 		}
@@ -137,18 +112,43 @@
 			}
 		}
 	}
+	.section {
+		border-top:1px solid @border;
+		margin-top:1em;
+		.clearfix;
+		padding:0 1em 1em 1em;
+		&.top {
+			border-top:none;
+		}
+		&.sticky {
+			background-color:@form-bg;
+			z-index:9998;
+			margin-top:0;
+			border-top:0;
+			width:100%;
+			padding:.5em;
+			max-width:920px;
+			border-bottom:1px solid @border;
+			p {
+				float:right;
+			}
+			h3 {
+				margin-top:0;
+			}
+		}
+	}
 	a#insert-media-button,
 	button.ppt-button,
 	button.ppt-media-single-image,
 	button.ppt-media-multiple-images,
 	button.ppt-media-file,
-	.profile-button {
+	.profile-button, .profile-button:visited {
 		text-decoration:none;
 		border:0;
 		.rounded(4px);
 		background-color:@button;
 		color:@button-text;
-		&:hover {
+		&:hover, &:visited:hover {
 			background:@button-hover;
 			color:@button-text-hover;
 		}
@@ -184,6 +184,9 @@
 		background:#fff;
 		border:1px solid @border;
 		border-top:3em solid @orange;
+		.saved & {
+			border-top-color: lighten(@orange, 5%);
+		}
 		p {
 			margin:.5em 0;
 		}
@@ -297,7 +300,26 @@
 		}
 	}
 }
+.content-main .section.sticky {
+	.filter-list {
+		width:25%;
+		float:left;
+		margin-right:0;
+		p.label {
+			float:none;
+			font-style:italic;
+			font-size:0.9em;
+			margin:.25em 0;
+		}
+	}
+	#remove-filters,
+	#current-filters,
+	#profile-filters {
+		display:none;
+	}
+}
 .checkbox-list {
+	clear:both;
 	height:15em;
 	width:96%;
 	input[type=checkbox] {

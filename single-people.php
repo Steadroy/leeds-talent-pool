@@ -46,25 +46,13 @@ if (have_posts()) : while (have_posts()) : the_post();
 	$cv_URL = '';
 	$cv_ID = get_user_meta( $user->ID, 'cv', true );
 	if ( $cv_ID !== '' ) {
-		$cv_URL = get_attachment_link( $cv_ID );
+		$cv_URL = wp_get_attachment_url( $cv_ID );
 	}
 	// start toolbar output
 	print('<div class="section sticky toolbar">');
 	if ( ltp_is_wpp() ) {
 		// WPP users toolbar
-		printf('<form action="%s" method="post">', $_SERVER["REQUEST_URI"] );
-		printf('<input type="hidden" name="user_id" value="%s">', $current_user->ID );
-		printf('<input type="hidden" name="profile_page_id" value="%s">', $post->ID );
-		if ( $cv_URL ) {
-			printf('<input type="hidden" name="cv_url" value="%s">', esc_attr( $cv_URL ) );
-			print('<button type="submit" name="action" value="cv_download">Download CV</button>');
-		}
-		if ( ltp_data::is_saved( $current_user->ID, $post->ID ) ) {
-			printf('<button name="action" value="remove">Remove</button>');
-		} else {
-			printf('<button name="action" value="save">Save</button>');
-		}
-		print('</form>');
+		print( ltp_template::wpp_profile_toolbar( $current_user->ID, $post->ID ) );
 	} elseif ( $current_user->ID == $user->ID ) {
 		// student toolbar
 		printf( '<form action="%s" method="post">', get_permalink( $options["builder_page_id"] ) );
@@ -100,8 +88,8 @@ if (have_posts()) : while (have_posts()) : the_post();
 		printf('<p><strong>Experience (years):</strong> %s</p>',  $exp[0]);
 	}
 	printf('<p><strong>Expertise:</strong> %s</p>', implode(", ", get_user_meta( $user->ID, 'expertise', true) ) );
-	if ( ! ltp_is_wpp() && $cv_URL ) {
-		printf('<p><a href="%s" class="profile-button">Download CV</a></p>', $cv_url );
+	if ( ! ltp_is_wpp() && ! empty( $cv_URL ) ) {
+		printf('<p><a href="%s" class="profile-button">Download CV</a></p>', $cv_URL );
 	}
 	print('</div>');
 	print( apply_filters('the_content', get_user_meta( $user->ID, 'statement', true ) ) );
