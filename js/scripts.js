@@ -151,6 +151,36 @@
 				$(this).data('showing-saved', true);
 			}
 		});
+		// save profile from list view via ajax
+		$('.ajax-button').on('click', function(e){
+			e.preventDefault();
+			var ajax_action = $(this).data('ajax_action'),
+				people_page_id = $(this).data('people_page_id'),
+				user_id = $(this).data('user_id');
+			$.post({
+				ppt.ajaxurl,
+				{
+					'datanonce': ppt.datanonce,
+					'action': 'ltp_data',
+					'ajax_action': ajax_action,
+					'people_page_id': people_page_id,
+					'user_id': user_id
+				},
+				function( data, textstatus ) {
+					if ( ajax_action === 'save' ) {
+						$('#save_'+profile_page_id).text('Remove');
+						$('#save_'+profile_page_id).data('ajax_action', 'remove');
+						$('#ltp_profile_wrap_'+profile_page_id).addClass('saved');
+					}
+					if ( ajax_action === 'remove' ) {
+						$('#save_'+profile_page_id).text('Save');
+						$('#save_'+profile_page_id).data('ajax_action', 'save');
+						$('#ltp_profile_wrap_'+profile_page_id).removeClass('saved');
+					}
+				}
+			})
+		});
+
 		$('#profile-filter').on('click', function(e){
 			e.preventDefault();
 			if ($('#profile-filters').data('showing-filters')) {

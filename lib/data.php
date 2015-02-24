@@ -15,7 +15,8 @@ if ( ! class_exists( 'ltp_data' ) ) {
 		 */
 		public static function register()
 		{
-			
+			/* ajax handler for updates */
+			add_action( 'wp_ajax_ltp_data', array( __CLASS__, 'ajax_actions' ) );
 		}
 
 		/**
@@ -85,6 +86,31 @@ if ( ! class_exists( 'ltp_data' ) ) {
 						self::remove_profile( $user_id, $profile_page_id );
 						break;
 				}
+			}
+		}
+
+		/**
+		 * saves actions via AJAX
+		 */
+		public static function ajax_actions()
+		{
+    		if ( wp_verify_nonce( $_REQUEST['datanonce'], 'ltp_data_nonce' ) ) {
+				global $current_user;
+				$user_id = ( isset( $_REQUEST["user_id"] ) ) ? $_REQUEST["user_id"] : $current_user->ID;
+				$profile_page_id = $_REQUEST["profile_page_id"];
+				switch ( $_REQUEST["ajax_action"] ) {
+					case 'cv_download':
+						self::log_cv_download( $user_id, $profile_page_id );
+						wp_redirect( $_REQUEST["cv_url"] );
+						break;
+					case 'save':
+						self::save_profile( $user_id, $profile_page_id );
+						break;
+					case 'remove':
+						self::remove_profile( $user_id, $profile_page_id );
+						break;
+				}
+				exit();
 			}
 		}
 

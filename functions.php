@@ -60,7 +60,7 @@ if ( ! class_exists( 'leeds_talent_pool' ) ) {
 	class leeds_talent_pool
 	{
 		/* theme version */
-		static $version = '0.0.1';
+		static $version = '0.0.2';
 
 		/* registers with wordpress API */
 		public static function register()
@@ -86,7 +86,7 @@ if ( ! class_exists( 'leeds_talent_pool' ) ) {
 			add_filter( 'show_admin_bar', '__return_false');
 
 			// theme installation and updates
-			add_action( 'init', array( __CLASS__, 'install' ) );
+			add_action( 'init', array( __CLASS__, 'upgrade' ) );
 
 			// theme uninstallation
 			add_action( 'switch_theme', array( __CLASS__, 'uninstall' ) );
@@ -101,22 +101,23 @@ if ( ! class_exists( 'leeds_talent_pool' ) ) {
 		}
 
 		/**
-		 * installation routine
+		 * installation / upgrade routine
 		 */
-		public static function install()
+		public static function upgrade()
 		{
 			$current_version = get_option('ltp_theme_version');
 			if ($current_version != self::$version) {
 				switch ($current_version) {
 					case false:
 						/* first installation */
+						ltp_data::drop_data_table();
 						ltp_data::create_data_table();
 
 					case '0.0.1':
 						/* upgrade from 0.0.1 */
 				}
 				/* update the version option */
-				//update_option('ltp_theme_version', self::$version);
+				update_option('ltp_theme_version', self::$version);
 			}
 		}
 
@@ -154,6 +155,7 @@ if ( ! class_exists( 'leeds_talent_pool' ) ) {
 				'ppt',
 				array(
 					'ajaxurl' => admin_url('admin-ajax.php'),
+					'datanonce' => wp_create_nonce( 'ltp_data_nonce' ),
 					'ajaxnonce' => wp_create_nonce( 'ajax_ppt_fields_action' ),
 					'img_empty_single' => __('No image selected', 'ppt'),
 					'img_empty_multiple' => __('No images selected', 'ppt'),

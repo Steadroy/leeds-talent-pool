@@ -89,7 +89,7 @@ if ( ! class_exists( 'ltp_template' ) ) {
 			if ( ltp_data::is_saved( $current_user->ID, $page_id ) ) {
 				$classes .= ' saved';
 			}
-			$vcard .= sprintf( '<div class="ltp-profile-wrap %s"><div class="vcard">', trim( $classes ) );
+			$vcard .= sprintf( '<div id="ltp_profile_wrap_%s" class="ltp-profile-wrap %s"><div class="vcard">', $page_id, trim( $classes ) );
 			// get full name 
 			$fullname = $student["firstname"] . " " . $student["surname"];
 			if ( isset( $student['photo'] ) && intval( $student['photo'] ) > 0 ) {
@@ -117,8 +117,7 @@ if ( ! class_exists( 'ltp_template' ) ) {
 				$cv_url = wp_get_attachment_url( $student['cv'] );
 			}
 			if ( ltp_is_wpp() ) {
-				
-				$vcard .= self::wpp_profile_toolbar( $current_user->ID, $page_id, $cv_url, true );
+				$vcard .= self::wpp_profile_buttons( $current_user->ID, $page_id );
 			}
 			$vcard .= '</div></div>';
 			return $vcard;
@@ -154,28 +153,42 @@ if ( ! class_exists( 'ltp_template' ) ) {
 		 * returns a toolbar for wpp users when viewing a single profile page, 
 		 * or used for buttons on individual profiles in view mode
 		 */
-		public static function wpp_profile_toolbar( $user_id, $profile_page_id, $cv_URL = false, $link_to_page = false )
+		public static function wpp_profile_toolbar( $user_id, $profile_page_id, $cv_URL = false )
 		{
 			$toolbar = sprintf('<form action="%s" method="post">', $_SERVER["REQUEST_URI"] );
 			$toolbar .= sprintf('<input type="hidden" name="user_id" value="%s">', $user_id );
 			$toolbar .= sprintf('<input type="hidden" name="profile_page_id" value="%s">', $profile_page_id );
-			if ( $link_to_page ) {
-				$toolbar .= sprintf('<a class="profile-button" href="%s">View Profile</a>', get_permalink( $profile_page_id ) );
+			$toolbar .= sprintf('<a class="profile-button" href="%s">View all profiles</a>', ltp_get_page_url('view'));
+			if ( ltp_data::has_saved( $user_id ) ) {
+				$toolbar .= sprintf('<a class="profile-button" href="%s#saved">View Saved Profiles</button>', ltp_get_page_url('view'));
 			}
 			if ( $cv_URL ) {
 				$toolbar .= sprintf('<input type="hidden" name="cv_url" value="%s">', esc_attr( $cv_URL ) );
-				$toolbar .= '<button class="profile-button" name="action" value="cv_download" class="ppt-button">Download CV</button>';
+				$toolbar .= '<button name="action" value="cv_download" class="ppt-button ajax-button">Download CV</button>';
 			}
 			if ( ltp_data::is_saved( $user_id, $profile_page_id ) ) {
-				$toolbar .= sprintf('<button name="action" value="remove" class="ppt-button">Remove</button>');
+				$toolbar .= sprintf('<button name="action" value="remove" class="ppt-button ajax-button">Remove</button>');
 			} else {
-				$toolbar .= sprintf('<button name="action" value="save" class="ppt-button">Save</button>');
-			}
-			if ( ! $link_to_page && ltp_data::has_saved( $user_id ) ) {
-				$toolbar .= sprintf('<button name="action" value="view_saved" class="ppt-button">View Saved Profiles</button>');
+				$toolbar .= sprintf('<button name="action" value="save" class="ppt-button ajax-button">Save</button>');
 			}
 			$toolbar .= '</form>';
 			return $toolbar;
+		}
+
+		/**
+		 * returns a set of buttons used on individual profiles in list view to enable saving
+		 * and removing profiles via ajax
+		 */
+		public static function wpp_profile_buttons( $user_id, $profile_page_id )
+		{
+			$data_attr = sprintf(' data-user_id="%s" data-profile_page_id="%s"', $user_id, $profile_page_id);
+			$toolbar = sprintf('<a class="profile-button" href="%s">View Profile</a>', get_permalink( $profile_page_id ) );
+			if ( ltp_data::is_saved( $user_id, $profile_page_id ) ) {
+				$toolbar .= sprintf('<a id="save_%s" data-ajax_action="remove" class="profile-button ajax-button"%s>Remove</a>', $profile_page_id, $data_attr);
+			} else {
+				$toolbar .= sprintf('<a id="save_%s" data-ajax_action="save" class="profile-button ajax-button"%s>Save</a>', $profile_page_id, $data_attr);
+			}
+
 		}
 
 		/**
