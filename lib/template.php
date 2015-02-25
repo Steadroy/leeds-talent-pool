@@ -82,7 +82,7 @@ if ( ! class_exists( 'ltp_template' ) ) {
 			foreach ( $filter_attr as $att ) {
 				if ( isset( $student[$att] ) && is_array( $student[$att] ) && count( $student[$att] ) ) {
 					foreach ( $student[$att]  as $val ) {
-						$classes .= $att . '-' . preg_replace('/[^a-zA-Z]+/', '', $val) . ' ';
+						$classes .= $att . '-' . preg_replace('/[^a-zA-Z0-9]+/', '', $val) . ' ';
 					}
 				}
 			}
@@ -158,9 +158,9 @@ if ( ! class_exists( 'ltp_template' ) ) {
 			$toolbar = sprintf('<form action="%s" method="post">', $_SERVER["REQUEST_URI"] );
 			$toolbar .= sprintf('<input type="hidden" name="user_id" value="%s">', $user_id );
 			$toolbar .= sprintf('<input type="hidden" name="profile_page_id" value="%s">', $profile_page_id );
-			$toolbar .= sprintf('<a class="profile-button" href="%s">View all profiles</a>', ltp_get_page_url('view'));
+			$toolbar .= sprintf('<a class="profile-button" href="%s">View all profiles</a>', ltp_get_page_url('viewer'));
 			if ( ltp_data::has_saved( $user_id ) ) {
-				$toolbar .= sprintf('<a class="profile-button" href="%s#saved">View Saved Profiles</button>', ltp_get_page_url('view'));
+				$toolbar .= sprintf('<a class="profile-button" href="%s#saved">View Saved Profiles</a>', ltp_get_page_url('viewer'));
 			}
 			if ( $cv_URL ) {
 				$toolbar .= sprintf('<input type="hidden" name="cv_url" value="%s">', esc_attr( $cv_URL ) );
@@ -182,13 +182,13 @@ if ( ! class_exists( 'ltp_template' ) ) {
 		public static function wpp_profile_buttons( $user_id, $profile_page_id )
 		{
 			$data_attr = sprintf(' data-user_id="%s" data-profile_page_id="%s"', $user_id, $profile_page_id);
-			$toolbar = sprintf('<a class="profile-button" href="%s">View Profile</a>', get_permalink( $profile_page_id ) );
+			$buttons = sprintf('<a class="profile-button" href="%s">View Profile</a>', get_permalink( $profile_page_id ) );
 			if ( ltp_data::is_saved( $user_id, $profile_page_id ) ) {
-				$toolbar .= sprintf('<a id="save_%s" data-ajax_action="remove" class="profile-button ajax-button"%s>Remove</a>', $profile_page_id, $data_attr);
+				$buttons .= sprintf('<a href="#" id="save_%s" data-ajax_action="remove" class="profile-button ajax-button"%s>Remove</a>', $profile_page_id, $data_attr);
 			} else {
-				$toolbar .= sprintf('<a id="save_%s" data-ajax_action="save" class="profile-button ajax-button"%s>Save</a>', $profile_page_id, $data_attr);
+				$buttons .= sprintf('<a href="#" id="save_%s" data-ajax_action="save" class="profile-button ajax-button"%s>Save</a>', $profile_page_id, $data_attr);
 			}
-
+			return $buttons;
 		}
 
 		/**
@@ -199,9 +199,8 @@ if ( ! class_exists( 'ltp_template' ) ) {
 		{
 			global $current_user;
 			$toolbar = '';
-			if ( ltp_data::has_saved( $current_user->ID ) ) {
-				$toolbar .= sprintf('<a href="#" id="saved-filter" class="profile-button">View Saved Profiles</button>');
-			}
+			$style = ( ltp_data::has_saved( $current_user->ID ) ) ? '': ' style="display:none;"';
+			$toolbar .= sprintf('<a href="#" id="saved-filter" class="profile-button"%s>View Saved Profiles</button>', $style);
 			// add filters
 			$toolbar .= sprintf('<a href="#" id="profile-filter" class="profile-button">Filter Profiles</a>');
 			$toolbar .= sprintf('<a href="#" id="remove-filters" class="profile-button">Remove filters</a>');

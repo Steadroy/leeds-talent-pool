@@ -45,7 +45,7 @@ if ( ! class_exists( 'ltp_data' ) ) {
 		/**
 		 * removes the database table
 		 */
-		private static function drop_data_table()
+		public static function drop_data_table()
 		{
 			global $wpdb;
 			$data_table_name = self::get_data_tablename();
@@ -96,20 +96,19 @@ if ( ! class_exists( 'ltp_data' ) ) {
 		{
     		if ( wp_verify_nonce( $_REQUEST['datanonce'], 'ltp_data_nonce' ) ) {
 				global $current_user;
-				$user_id = ( isset( $_REQUEST["user_id"] ) ) ? $_REQUEST["user_id"] : $current_user->ID;
-				$profile_page_id = $_REQUEST["profile_page_id"];
-				switch ( $_REQUEST["ajax_action"] ) {
-					case 'cv_download':
-						self::log_cv_download( $user_id, $profile_page_id );
-						wp_redirect( $_REQUEST["cv_url"] );
-						break;
+				$ret = array();
+				$ret["user_id"] = ( isset( $_REQUEST["user_id"] ) ) ? $_REQUEST["user_id"] : $current_user->ID;
+				$ret["profile_page_id"] = $_REQUEST["profile_page_id"];
+				$ret["ajax_action"] = $_REQUEST["ajax_action"];
+				switch ( $ret["ajax_action"] ) {
 					case 'save':
-						self::save_profile( $user_id, $profile_page_id );
+						$ret["result"] = self::save_profile( $ret["user_id"], $ret["profile_page_id"] );
 						break;
 					case 'remove':
-						self::remove_profile( $user_id, $profile_page_id );
+						$ret["result"] = self::remove_profile( $ret["user_id"], $ret["profile_page_id"] );
 						break;
 				}
+				print(json_encode($ret));
 				exit();
 			}
 		}
@@ -153,7 +152,7 @@ if ( ! class_exists( 'ltp_data' ) ) {
 				// insert a row in the database
 				global $wpdb;
 				$tablename = self::get_data_tablename();
-				$wpdb->insert(
+				$result = $wpdb->insert(
 					$tablename,
 					array(
 						'user_id' => $user_id,
@@ -170,7 +169,11 @@ if ( ! class_exists( 'ltp_data' ) ) {
 						'%s'
 					)
 				);
-				return $wpdb->insert_id;
+				if ( $result !== false ) {
+					return $wpdb->insert_id;
+				} else {
+					return false;
+				}
 			}
 		}
 
@@ -221,7 +224,7 @@ if ( ! class_exists( 'ltp_data' ) ) {
 		 */
 		private static function save_profile( $user_id, $profile_page_id )
 		{
-			self::log( array(
+			return self::log( array(
 				"user_id" => $user_id,
 				"profile_page_id" => $profile_page_id,
 				"entry_type" => "saved"
@@ -237,7 +240,7 @@ if ( ! class_exists( 'ltp_data' ) ) {
 		{
 			global $wpdb;
 			$tablename = self::get_data_tablename();
-			$wpdb->update(
+			$result = $wpdb->update(
 				$tablename,
 				array( 
 					'entry_type' => 'removed'
@@ -248,6 +251,7 @@ if ( ! class_exists( 'ltp_data' ) ) {
 					'entry_type' => 'saved'
 				)
 			);
+			return $result;
 		}
 
 		/**
