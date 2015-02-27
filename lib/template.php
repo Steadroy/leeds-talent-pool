@@ -204,26 +204,29 @@ if ( ! class_exists( 'ltp_template' ) ) {
 			// add filters
 			$toolbar .= sprintf('<a href="#" id="profile-filter" class="profile-button">Filter Profiles</a>');
 			$toolbar .= sprintf('<a href="#" id="remove-filters" class="profile-button">Remove filters</a>');
-			$toolbar .= '<div id="current-filters"></div>';
 			$toolbar .= '<div id="profile-filters">';
 			$fields = PeoplePostType::get_profile_fields();
 			$filters = array( 
+				"expertise" => array(
+					"label" => "Students with expertise in:",
+					"no-selection" => "Anything",
+					"options" => array()
+				),
 				"experience" => array(
 					"label" => "Minimum experience (years):",
+					"no-selection" => "No minimum",
 					"options" => array()
 				), 
 				"region" => array(
-					"label" => "Show students based in:",
+					"label" => "Students who are currently based in:",
+					"no-selection" => "Any region",
 					"options" => array()
 				),
 				"desired_region" => array(
-					"label" => "Show students wishing to work in:",
+					"label" => "Students who wish to work in:",
+					"no-selection" => "Any region",
 					"options" => array()
 				),
-				"expertise" => array(
-					"label" => "Show students with expertise in:",
-					"options" => array()
-				)
 			);
 			// get options for each filter
 			foreach ( $fields as $field ) {
@@ -231,17 +234,26 @@ if ( ! class_exists( 'ltp_template' ) ) {
 					$filters[$field["name"]]["options"] = $field["options"];
 				}
 			}
+			$filter_list = '<div id="filter-list"><h3>Filter profiles by:</h3><ul>';
+			$filter_controls = '<div id="filter-controls">';
 			foreach ( $filters as $filter => $data ) {
+				$active = ($filter === "expertise") ? ' active': '';;
 				if ( count( $data["options"] ) ) {
-					$toolbar .= sprintf('<div class="filter-list"><p class="label">%s</p><div class="checkbox-list">', $data["label"] );
+					$filter_list .= sprintf('<li><a href="#filters-%s" class="show-filter-controls%s">%s</a><span class="current-filters-list" id="current-filters-%s" data-no-selection="%s"></span></li>', $filter, $active, $data["label"], $filter, esc_attr($data["no-selection"]) );
+					$filter_controls .= sprintf('<div class="checkbox-list %s" id="filters-%s">', $active, $filter);
+					//$toolbar .= sprintf('<p class="label">%s</p><div class="checkbox-list" id="filters-%s">', $data["label"], $filter );
 					foreach ( $data["options"] as $option ) {
 						$option_value = $filter . '-' . preg_replace('/[^a-zA-Z0-9]+/', '', $option);
-						$toolbar .= sprintf('<label for="%s"><input type="checkbox" name="%s" id="%s" value="1"> %s</label>', $option_value, $filter, $option_value, $option );
+						//$toolbar .= sprintf('<label for="%s"><input type="checkbox" name="%s" id="%s" value="1"> %s</label>', $option_value, $filter, $option_value, $option );
+						$filter_controls .= sprintf('<label for="%s" title="%s" data-filterid="filters-%s"><input type="checkbox" name="%s" id="%s" value="1"> %s</label>', $option_value, esc_attr($option), $filter, $filter, $option_value, $option );
 					}
-					$toolbar .= '</div></div>';
+					$filter_controls .= '</div>';
+					//$toolbar .= '</div></div>';
 				}
 			}
-			$toolbar .= '</div>';
+			$filter_list .= '</ul></div>';
+			$filter_controls .= '</div>';
+			$toolbar .= $filter_list . $filter_controls . '</div>';
 			$toolbar .= '</form>';
 			return $toolbar;
 		}

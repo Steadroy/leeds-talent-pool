@@ -300,28 +300,63 @@
 		}
 	}
 }
-.content-main .section.sticky {
-	.filter-list {
-		width:25%;
-		float:left;
-		margin-right:0;
-		padding-bottom:1em;
-		p.label {
-			float:none;
-			font-style:italic;
-			font-size:0.9em;
-			margin:.25em 0;
+.checkbox-list {
+	label {
+		-webkit-touch-callout: none;
+		-webkit-user-select: none;
+		-khtml-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+	}
+}
+.content-main {
+	#profile-filters {
+		position:relative;
+		display:none;
+		padding:1em 0;
+		background-color:@form-bg;
+		.clearfix;
+		#filter-list {
+			width:40%;
+			float:left;
+			ul {
+				list-style:none;
+				padding:0;
+				margin:0;
+				.show-filter-controls {
+					display:block;
+					padding:0.5em;
+					&.active {
+						background-color: darken(@form-bg, 10%);
+					}
+				}
+				.current-filters-list {
+					display:inline-block;
+					margin-left:0.5em;
+				}
+			}
+		}
+		#filter-controls {
+			position:relative;
+			width:50%;
+			float:left;
+			padding:1em 2% 1em 2%;
+			background-color: darken(@form-bg, 10%);
+			.checkbox-list {
+				height:20em;
+				display:none;
+			}
 		}
 	}
-	#remove-filters,
-	#current-filters,
-	#profile-filters {
+	#remove-filters {
 		display:none;
 	}
 }
 .checkbox-list {
 	clear:both;
 	height:15em;
+	ovarflow:auto;
 	width:96%;
 	input[type=checkbox] {
 		visibility:hidden;

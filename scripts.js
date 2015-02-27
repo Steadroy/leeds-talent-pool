@@ -224,6 +224,124 @@
 	};
 })(jQuery);
 /*!
+ * jQuery Cookie Plugin v1.4.1
+ * https://github.com/carhartl/jquery-cookie
+ *
+ * Copyright 2013 Klaus Hartl
+ * Released under the MIT license
+ */
+(function (factory) {
+	if (typeof define === 'function' && define.amd) {
+		// AMD
+		define(['jquery'], factory);
+	} else if (typeof exports === 'object') {
+		// CommonJS
+		factory(require('jquery'));
+	} else {
+		// Browser globals
+		factory(jQuery);
+	}
+}(function ($) {
+
+	var pluses = /\+/g;
+
+	function encode(s) {
+		return config.raw ? s : encodeURIComponent(s);
+	}
+
+	function decode(s) {
+		return config.raw ? s : decodeURIComponent(s);
+	}
+
+	function stringifyCookieValue(value) {
+		return encode(config.json ? JSON.stringify(value) : String(value));
+	}
+
+	function parseCookieValue(s) {
+		if (s.indexOf('"') === 0) {
+			// This is a quoted cookie as according to RFC2068, unescape...
+			s = s.slice(1, -1).replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+		}
+
+		try {
+			// Replace server-side written pluses with spaces.
+			// If we can't decode the cookie, ignore it, it's unusable.
+			// If we can't parse the cookie, ignore it, it's unusable.
+			s = decodeURIComponent(s.replace(pluses, ' '));
+			return config.json ? JSON.parse(s) : s;
+		} catch(e) {}
+	}
+
+	function read(s, converter) {
+		var value = config.raw ? s : parseCookieValue(s);
+		return $.isFunction(converter) ? converter(value) : value;
+	}
+
+	var config = $.cookie = function (key, value, options) {
+
+		// Write
+
+		if (value !== undefined && !$.isFunction(value)) {
+			options = $.extend({}, config.defaults, options);
+
+			if (typeof options.expires === 'number') {
+				var days = options.expires, t = options.expires = new Date();
+				t.setTime(+t + days * 864e+5);
+			}
+
+			return (document.cookie = [
+				encode(key), '=', stringifyCookieValue(value),
+				options.expires ? '; expires=' + options.expires.toUTCString() : '', // use expires attribute, max-age is not supported by IE
+				options.path    ? '; path=' + options.path : '',
+				options.domain  ? '; domain=' + options.domain : '',
+				options.secure  ? '; secure' : ''
+			].join(''));
+		}
+
+		// Read
+
+		var result = key ? undefined : {};
+
+		// To prevent the for loop in the first place assign an empty array
+		// in case there are no cookies at all. Also prevents odd result when
+		// calling $.cookie().
+		var cookies = document.cookie ? document.cookie.split('; ') : [];
+
+		for (var i = 0, l = cookies.length; i < l; i++) {
+			var parts = cookies[i].split('=');
+			var name = decode(parts.shift());
+			var cookie = parts.join('=');
+
+			if (key && key === name) {
+				// If second argument (value) is a function it's a converter...
+				result = read(cookie, value);
+				break;
+			}
+
+			// Prevent storing a cookie that we couldn't decode.
+			if (!key && (cookie = read(cookie)) !== undefined) {
+				result[name] = cookie;
+			}
+		}
+
+		return result;
+	};
+
+	config.defaults = {};
+
+	$.removeCookie = function (key, options) {
+		if ($.cookie(key) === undefined) {
+			return false;
+		}
+
+		// Must not alter options, thus extending a fresh object...
+		$.cookie(key, '', $.extend({}, options, { expires: -1 }));
+		return !$.cookie(key);
+	};
+
+}));
+
+/*!
 	Colorbox 1.5.14
 	license: MIT
 	http://www.jacklmoore.com/colorbox
@@ -3234,7 +3352,9 @@
 		$('#profile-filter').text('Filter Profiles');
 		$('.ltp-profile-wrap').show();
 		rearrangeProfiles();
+		showCurrentFilters();
 		$('.ltp-profiles p.message').remove();
+		$.cookie('ltp-filters', {});
 	},
 	applyFilters = function( filters )
 	{
@@ -3262,11 +3382,57 @@
 					$(this).hide();
 				}
 			});
+			if (!$('.ltp-profile-wrap:visible').length) {
+				$('.ltp-profiles').append('<p class="message">No profiles match your search criteria</p>');
+			} else {
+				rearrangeProfiles();
+			}
+			// change the button text
+			$('#profile-filter').text('Edit filters');
+			// add button to remove filters
+			$('#remove-filters').show();
+			// show current filters
+			showCurrentFilters();
 		}
+		$.cookie('ltp-filters', filters, { 'expires': 30 });
 	},
 	loadFilters = function()
 	{
-
+		var filters = $.cookie('ltp-filters');
+		if ( ! $.isEmptyObject(filters)) {
+			// uncheck all filters
+			$('#profile-filters :checkbox').prop('checked', false);
+			// check relevant filter checkboxes
+			for (var f in filters) {
+				for (var i = 0; i < filters[f].length; i++) {
+					$('#'+filters[f][i]).prop('checked', true);
+				}
+			}
+			// apply to profile list
+			applyFilters(filters);
+		}
+	},
+	showCurrentFilters = function()
+	{
+		var filters = {};
+		// clear existing text
+		$('.current-filters-list').each(function(){
+			$(this).text($(this).data('no-selection'));
+		});
+		// go through labels looking for active items
+		// must be called after checkCheckboxLists(!)
+		$('.checkbox-list label.active').each(function(){
+			if ( ! filters[$(this).data('filterid')] ) {
+				filters[$(this).data('filterid')] = [];
+			}
+			filters[$(this).data('filterid')].push($(this).attr('title'));
+		});
+		// set the items in the lists
+		if ( ! $.isEmptyObject(filters)) {
+			for (var f in filters) {
+				$('#current-'+f).text(filters[f].join(', '));
+			}
+		}
 	},
 	rearrangeProfiles = function()
 	{
@@ -3299,10 +3465,18 @@
 		$('#saved-filter').text('Show all profiles');
 		$('#profile-filters').data('showing-saved', true);
 	};
+
+	// set cookies to store JSON objects
+	$.cookie.json = true;
+
+	// bootstrap profile builder scripts
 	if ($('.ltp-profile-builder').length) {
+		//make nice scrolling checkbox lists
 		$('.checkbox-list').jScrollPane({verticalGutter:0});
+		// ensure checkbox lists are styled appropriately when clicked
 		$('.checkbox-list label').on('click', checkCheckboxLists);
 		checkCheckboxLists();
+		// check completion of form
 		$('input,textarea,select').on('change', function(){
 			checkCompletion();
 		});
@@ -3316,7 +3490,13 @@
 			}
 		});
 	}
+
+	// bootstrap profile filtering scripts
 	if ($('#profile-filters').length) {
+
+		// load any existing filters from a cookie
+		loadFilters();
+
 		// auto-check experience with greater value
 		$('input[name=experience]').on('click', function(){
 			var selectThis = false,
@@ -3340,7 +3520,13 @@
 			});
 			checkCheckboxLists();
 		});
-		checkCheckboxLists();
+		
+		// when a filter is updated, make sure class is applied and current filters displayed
+		$('#profile-filters .checkbox-list label').on('click', function(){
+			checkCheckboxLists();
+			showCurrentFilters();
+		});
+		
 		// button which shows saved/all profiles
 		$('#saved-filter').on('click', function(e){
 			e.preventDefault();
@@ -3356,6 +3542,7 @@
 				showSavedProfiles();
 			}
 		});
+		
 		// save profile from list view via ajax
 		$('.ajax-button').on('click', function(e){
 			e.preventDefault();
@@ -3400,6 +3587,7 @@
 		// button used to filter profiles
 		$('#profile-filter').on('click', function(e){
 			e.preventDefault();
+			showCurrentFilters();
 			if ($('#profile-filters').data('showing-filters')) {
 				$('.ltp-profiles p.message').remove();
 				// Apply filters button has been clicked
@@ -3416,15 +3604,6 @@
 						filters[$(this).attr('name')].push($(this).attr('id'));
 					});
 					applyFilters(filters);
-					if (!$('.ltp-profile-wrap:visible').length) {
-						$('.ltp-profiles').append('<p class="message">No profiles match your search criteria</p>');
-					} else {
-						rearrangeProfiles();
-					}
-					// change the button text
-					$(this).text('Edit filters');
-					// add button to remove filters
-					$('#remove-filters').show();
 					// hide filter controls
 					$('#profile-filters').slideUp(function(){
 						$('#profile-filters').data('showing-filters', false);
@@ -3435,9 +3614,9 @@
 				$('#profile-filters').show();
 				$('#remove-filters').hide();
 				$(this).text('Apply filters');
+				// show active list for first time
+				$('.checkbox-list.active').show().jScrollPane({verticalGutter:0}).removeClass('active');
 				$('#profile-filters').data('showing-filters', true);
-				$('.checkbox-list').jScrollPane({verticalGutter:0});
-				$('.checkbox-list label').on('click', checkCheckboxLists);
 			}
 		});
 		$('#remove-filters').on('click', function(e){
@@ -3445,9 +3624,19 @@
 			removeFilters();
 			$(this).hide();
 		});
+		$('.show-filter-controls').on('click', function(e){
+			e.preventDefault();
+			$('.show-filter-controls').removeClass('active');
+			$(this).addClass('active');
+			$('.checkbox-list').hide();
+			$($(this).attr('href')).show().jScrollPane({verticalGutter:0});
+			checkCheckboxLists();
+		});
 		if (window.location.hash === '#saved') {
 			showSavedProfiles();
 		}
+		checkCheckboxLists();
+		showCurrentFilters();
 	}
 	$('.sticky').sticky();
 	$('.showcase-button').colorbox({
