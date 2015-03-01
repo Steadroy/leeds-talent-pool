@@ -198,7 +198,7 @@ if ( ! class_exists( 'ltp_template' ) ) {
 		public static function wpp_toolbar( )
 		{
 			global $current_user;
-			$toolbar = '';
+			$toolbar = '<div class="toolbar-buttons">';
 			
 			// View buttons
 			
@@ -217,6 +217,8 @@ if ( ! class_exists( 'ltp_template' ) ) {
 			$toolbar .= sprintf('<a href="#" id="edit-filters" class="profile-button">Edit filters</a>');
 			// apply filters button
 			$toolbar .= sprintf('<a href="#" id="apply-filters" class="profile-button">Apply filters</a>');
+			
+			$toolbar .= '</div>';
 			
 			// Filters
 			$toolbar .= '<div id="profile-filters">';
@@ -266,8 +268,8 @@ if ( ! class_exists( 'ltp_template' ) ) {
 					//$toolbar .= '</div></div>';
 				}
 			}
-			$filter_list .= '</ul></div>';
-			$filter_controls .= '<p><a href="#" id="delete-filters" class="profile-button">Delete filters</a></p></div>';
+			$filter_list .= '</ul><a href="#" id="delete-filters" class="profile-button">Delete filters</a></div>';
+			$filter_controls .= '</div>';
 			$toolbar .= $filter_list . $filter_controls . '</div>';
 			$toolbar .= '</form>';
 			return $toolbar;

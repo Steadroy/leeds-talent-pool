@@ -128,6 +128,14 @@
 			return false;
 		}
 	},
+	hasSaved = function()
+	{
+		if ( $('.ltp-profile-wrap.saved').length ) {
+			return true;
+		} else {
+			return false;
+		}
+	},
 	updateCurrentFilters = function()
 	{
 		var filters = {};
@@ -186,19 +194,26 @@
 		rearrangeProfiles();
 		if ( hasFilters() ) {
 			$('#view-all,#view-filtered,#edit-filters').show();
-			$('#view-saved,#apply-filters,#remove-filters,#filter-profiles').hide();
+			$('#view-saved,#apply-filters,#remove-filters,#show-filters').hide();
 		} else {
-			$('#view-all,#filter-profiles').show();
+			$('#view-all,#show-filters').show();
 			$('#view-saved,#apply-filters,#remove-filters,#view-filtered,#edit-filters').hide();
 		}
 		window.location.hash = 'saved';
+		$('#profile-filters').data('showing', 'saved');
 	},
 	showFilteredProfiles = function()
 	{
+		if ( hasSaved() ) {
+			$('#view-saved').show();
+		} else {
+			$('#view-saved').hide();
+		}
 		if ( hasFilters() ) {
 			applyFilters();
-			$('#view-all,#view-saved,#edit-filters,#remove-filters').show();
-			$('#view-filtered,#apply-filters,#filter-profiles').hide();
+			$('#view-all,#edit-filters,#remove-filters').show();
+			$('#view-filtered,#apply-filters,#show-filters').hide();
+			$('#profile-filters').data('showing', 'filtered');
 			window.location.hash = 'filtered';
 		} else {
 			showAllProfiles();
@@ -207,13 +222,19 @@
 	showAllProfiles = function()
 	{
 		removeFilters();
-		if ( hasFilters() ) {
-			$('#view-saved,#view-filtered,#apply-filters,#edit-filters').show();
-			$('#view-all,#remove-filters,#filter-profiles').hide();
+		if ( hasSaved() ) {
+			$('#view-saved').show();
 		} else {
-			$('#view-saved,#filter-profiles').show();
+			$('#view-saved').hide();
+		}
+		if ( hasFilters() ) {
+			$('#view-filtered,#apply-filters,#edit-filters').show();
+			$('#view-all,#remove-filters,#show-filters').hide();
+		} else {
+			$('#show-filters').show();
 			$('#view-all,#view-filtered,#apply-filters,#edit-filters,#remove-filters').hide();
 		}
+		$('#profile-filters').data('showing', 'all');
 		window.location.hash = 'all';
 	},
 	loadProfiles = function()
@@ -272,23 +293,26 @@
 		// button to show saved profiles
 		$('#view-saved').on('click', function(e){
 			e.preventDefault();
+			$('#profile-filters').slideUp();
 			showSavedProfiles();
 		});
 
 		// button to show all profiles
 		$('#view-all').on('click', function(e){
 			e.preventDefault();
+			$('#profile-filters').slideUp();
 			showAllProfiles();
-		}
+		});
 
 		// button to show filtered profiles
 		$('#view-filtered').on('click', function(e){
 			e.preventDefault();
+			$('#profile-filters').slideUp();
 			showFilteredProfiles();
 		});
 		
 		// buttons to show profile filter controls
-		$('#filter-profiles,#edit-filters').on('click', function(e){
+		$('#show-filters,#edit-filters').on('click', function(e){
 			e.preventDefault();
 			updateCurrentFilters();
 			$('#profile-filters').slideDown(function(){
@@ -296,9 +320,9 @@
 					$('#apply-filters').show();
 					$('#delete-filters').show();
 				}
-			}
+			});
 			// hide the button
-			$('#edit-filters,#filter-profiles').hide();
+			$('#edit-filters,#show-filters').hide();
 			// show active list (fired only for the first time this is called)
 			$('.checkbox-list.active').show().jScrollPane({verticalGutter:0}).removeClass('active');
 		});
@@ -380,16 +404,13 @@
 						$('#save_'+data.profile_page_id).text('Remove');
 						$('#save_'+data.profile_page_id).data('ajax_action', 'remove');
 						$('#ltp_profile_wrap_'+data.profile_page_id).addClass('saved');
-						$('#show-saved').show();
-						if ($('#profile-filters').data('showing-saved')) {
-							$('#ltp_profile_wrap_'+data.profile_page_id).show();
-						}
+						$('#view-saved').show();
 					}
 					if ( data.ajax_action === 'remove' ) {
 						$('#save_'+data.profile_page_id).text('Save');
 						$('#save_'+data.profile_page_id).data('ajax_action', 'save');
 						$('#ltp_profile_wrap_'+data.profile_page_id).removeClass('saved');
-						if ($('#profile-filters').data('showing-saved')) {
+						if ($('#profile-filters').data('showing') === 'saved') {
 							$('#ltp_profile_wrap_'+data.profile_page_id).hide();
 							if (!$('.ltp-profile-wrap.saved').length) {
 								$('.ltp-profiles').append('<p class="message">No profiles have been saved</p>');
