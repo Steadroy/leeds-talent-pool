@@ -199,11 +199,26 @@ if ( ! class_exists( 'ltp_template' ) ) {
 		{
 			global $current_user;
 			$toolbar = '';
-			$style = ( ltp_data::has_saved( $current_user->ID ) ) ? '': ' style="display:none;"';
-			$toolbar .= sprintf('<a href="#" id="saved-filter" class="profile-button"%s>View Saved Profiles</button>', $style);
-			// add filters
-			$toolbar .= sprintf('<a href="#" id="profile-filter" class="profile-button">Filter Profiles</a>');
-			$toolbar .= sprintf('<a href="#" id="remove-filters" class="profile-button">Remove filters</a>');
+			
+			// View buttons
+			
+			// view all profiles button
+			$toolbar .= '<a href="#all" id="view-all" class="profile-button">View All Profiles</a>';
+			// view saved profiles button
+			$toolbar .= '<a href="#saved" id="view-saved" class="profile-button">View Saved Profiles</a>';
+			// view filtered profiles button
+			$toolbar .= '<a href="#filtered" id="view-filtered" class="profile-button">View Filtered Profiles</a>';
+			
+			// Filters control buttons
+			
+			// show filters button
+			$toolbar .= sprintf('<a href="#" id="show-filters" class="profile-button">Filter Profiles</a>');
+			// edit filters button
+			$toolbar .= sprintf('<a href="#" id="edit-filters" class="profile-button">Edit filters</a>');
+			// apply filters button
+			$toolbar .= sprintf('<a href="#" id="apply-filters" class="profile-button">Apply filters</a>');
+			
+			// Filters
 			$toolbar .= '<div id="profile-filters">';
 			$fields = PeoplePostType::get_profile_fields();
 			$filters = array( 
@@ -252,7 +267,7 @@ if ( ! class_exists( 'ltp_template' ) ) {
 				}
 			}
 			$filter_list .= '</ul></div>';
-			$filter_controls .= '</div>';
+			$filter_controls .= '<p><a href="#" id="delete-filters" class="profile-button">Delete filters</a></p></div>';
 			$toolbar .= $filter_list . $filter_controls . '</div>';
 			$toolbar .= '</form>';
 			return $toolbar;
