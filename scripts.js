@@ -342,7 +342,7 @@
 }));
 
 /*!
-	Colorbox 1.5.15
+	Colorbox 1.5.14
 	license: MIT
 	http://www.jacklmoore.com/colorbox
 */
@@ -435,7 +435,7 @@
 	colorbox = 'colorbox',
 	prefix = 'cbox',
 	boxElement = prefix + 'Element',
-
+	
 	// Events
 	event_open = prefix + '_open',
 	event_load = prefix + '_load',
@@ -466,7 +466,7 @@
 	$close,
 	$groupControls,
 	$events = $('<a/>'), // $({}) would be prefered, but there is an issue with jQuery 1.4.2
-
+	
 	// Variables for cached values or use across multiple functions
 	settings,
 	interfaceHeight,
@@ -488,7 +488,7 @@
 	// ****************
 	// HELPER FUNCTIONS
 	// ****************
-
+	
 	// Convenience function for creating new jQuery objects
 	function $tag(tag, id, css) {
 		var element = document.createElement(tag);
@@ -503,7 +503,7 @@
 
 		return $(element);
 	}
-
+	
 	// Get the window height using innerHeight when available to avoid an issue with iOS
 	// http://bugs.jquery.com/ticket/6724
 	function winheight() {
@@ -547,7 +547,7 @@
 		var
 		max = $related.length,
 		newIndex = (index + increment) % max;
-
+		
 		return (newIndex < 0) ? max + newIndex : newIndex;
 	}
 
@@ -555,7 +555,7 @@
 	function setSize(size, dimension) {
 		return Math.round((/%/.test(size) ? ((dimension === 'x' ? $window.width() : winheight()) / 100) : 1) * parseInt(size, 10));
 	}
-
+	
 	// Checks an href to see if it is a photo.
 	// There is a force photo option (photo: true) for hrefs that cannot be matched by the regex.
 	function isImage(settings, url) {
@@ -582,7 +582,7 @@
 
 	function getRelated(rel) {
 		index = 0;
-
+		
 		if (rel && rel !== false && rel !== 'nofollow') {
 			$related = $('.' + boxElement).filter(function () {
 				var options = $.data(this, colorbox);
@@ -590,7 +590,7 @@
 				return (settings.get('rel') === rel);
 			});
 			index = $related.index(settings.el);
-
+			
 			// Check direct calls to Colorbox.
 			if (index === -1) {
 				$related = $related.add(settings.el);
@@ -640,7 +640,7 @@
 
 		function stop() {
 			clear();
-
+			
 			$events
 				.unbind(event_complete, set)
 				.unbind(event_load, clear);
@@ -697,17 +697,17 @@
 			options = $(element).data(colorbox);
 
 			settings = new Settings(element, options);
-
+			
 			getRelated(settings.get('rel'));
 
 			if (!open) {
 				open = active = true; // Prevents the page-change action from queuing up if the visitor holds down the left or right keys.
 
 				setClass(settings.get('className'));
-
+				
 				// Show colorbox so the sizes can be calculated in older versions of jQuery
 				$box.css({visibility:'hidden', display:'block', opacity:''});
-
+				
 				$loaded = $tag(div, 'LoadedContent', 'width:0; height:0; overflow:hidden; visibility:hidden');
 				$content.css({width:'', height:''}).append($loaded);
 
@@ -735,14 +735,14 @@
 				$groupControls.add($title).hide();
 
 				$box.focus();
-
+				
 				if (settings.get('trapFocus')) {
 					// Confine focus to the modal
 					// Uses event capturing that is not supported in IE8-
 					if (document.addEventListener) {
 
 						document.addEventListener('focus', trapFocus, true);
-
+						
 						$events.one(event_closed, function () {
 							document.removeEventListener('focus', trapFocus, true);
 						});
@@ -763,7 +763,7 @@
 				cursor: settings.get('overlayClose') ? 'pointer' : '',
 				visibility: 'visible'
 			}).show();
-
+			
 			if (settings.get('closeButton')) {
 				$close.html(settings.get('close')).appendTo($content);
 			} else {
@@ -799,7 +799,7 @@
 			);
 
 			$close = $('<button type="button"/>').attr({id:prefix+'Close'});
-
+			
 			$wrap.append( // The 3x3 Grid that makes up Colorbox
 				$tag(div).append(
 					$tag(div, "TopLeft"),
@@ -817,9 +817,9 @@
 					$tag(div, "BottomRight")
 				)
 			).find('div div').css({'float': 'left'});
-
+			
 			$loadingBay = $tag(div, false, 'position:absolute; width:9999px; visibility:hidden; display:none; max-width:none;');
-
+			
 			$groupControls = $next.add($prev).add($current).add($slideshow);
 		}
 		if (document.body && !$box.parent().length) {
@@ -857,7 +857,7 @@
 						publicMethod.close();
 					}
 				});
-
+				
 				// Key Bindings
 				$(document).bind('keydown.' + prefix, function (e) {
 					var key = e.keyCode;
@@ -905,7 +905,7 @@
 	// Usage format: $.colorbox.close();
 	// Usage from within an iframe: parent.jQuery.colorbox.close();
 	// ****************
-
+	
 	publicMethod = $.fn[colorbox] = $[colorbox] = function (options, callback) {
 		var settings;
 		var $obj = this;
@@ -915,12 +915,15 @@
 		if ($.isFunction($obj)) { // assume a call to $.colorbox
 			$obj = $('<a/>');
 			options.open = true;
+		} else if (!$obj[0]) { // colorbox being applied to empty collection
+			return $obj;
 		}
+
 
 		if (!$obj[0]) { // colorbox being applied to empty collection
 			return $obj;
 		}
-
+		
 		appendHTML();
 
 		if (addBindings()) {
@@ -935,12 +938,12 @@
 			}).addClass(boxElement);
 
 			settings = new Settings($obj[0], options);
-
+			
 			if (settings.get('open')) {
 				launch($obj[0]);
 			}
 		}
-
+		
 		return $obj;
 	};
 
@@ -952,7 +955,7 @@
 		offset = $box.offset(),
 		scrollTop,
 		scrollLeft;
-
+		
 		$window.unbind('resize.' + prefix);
 
 		// remove the modal so that it doesn't influence the document width/height
@@ -979,7 +982,7 @@
 		} else {
 			left += Math.round(Math.max($window.width() - settings.w - loadedWidth - interfaceWidth, 0) / 2);
 		}
-
+		
 		if (settings.get('bottom') !== false) {
 			top += Math.max(winheight() - settings.h - loadedHeight - interfaceHeight - setSize(settings.get('bottom'), 'y'), 0);
 		} else if (settings.get('top') !== false) {
@@ -989,12 +992,12 @@
 		}
 
 		$box.css({top: offset.top, left: offset.left, visibility:'visible'});
-
+		
 		// this gives the wrapper plenty of breathing room so it's floated contents can move around smoothly,
 		// but it has to be shrank down around the size of div#colorbox when it's done.  If not,
 		// it can invoke an obscure IE bug when using iframes.
 		$wrap[0].style.width = $wrap[0].style.height = "9999px";
-
+		
 		function modalDimensions() {
 			$topBorder[0].style.width = $bottomBorder[0].style.width = $content[0].style.width = (parseInt($box[0].style.width,10) - interfaceWidth)+'px';
 			$content[0].style.height = $leftBorder[0].style.height = $rightBorder[0].style.height = (parseInt($box[0].style.height,10) - interfaceHeight)+'px';
@@ -1024,13 +1027,13 @@
 			duration: speed || 0,
 			complete: function () {
 				modalDimensions();
-
+				
 				active = false;
-
+				
 				// shrink the wrapper down to exactly the size of colorbox to avoid a bug in IE's iframe implementation.
 				$wrap[0].style.width = (settings.w + loadedWidth + interfaceWidth) + "px";
 				$wrap[0].style.height = (settings.h + loadedHeight + interfaceHeight) + "px";
-
+				
 				if (settings.get('reposition')) {
 					setTimeout(function () {  // small delay before binding onresize due to an IE8 bug.
 						$window.bind('resize.' + prefix, publicMethod.position);
@@ -1047,10 +1050,10 @@
 
 	publicMethod.resize = function (options) {
 		var scrolltop;
-
+		
 		if (open) {
 			options = options || {};
-
+			
 			if (options.width) {
 				settings.w = setSize(options.width, 'x') - loadedWidth - interfaceWidth;
 			}
@@ -1060,7 +1063,7 @@
 			}
 
 			$loaded.css({width: settings.w});
-
+			
 			if (options.height) {
 				settings.h = setSize(options.height, 'y') - loadedHeight - interfaceHeight;
 			}
@@ -1080,7 +1083,7 @@
 			if(scrolltop) {
 				$loaded.scrollTop(scrolltop);
 			}
-
+			
 			publicMethod.position(settings.get('transition') === "none" ? 0 : settings.get('speed'));
 		}
 	};
@@ -1089,13 +1092,13 @@
 		if (!open) {
 			return;
 		}
-
+		
 		var callback, speed = settings.get('transition') === "none" ? 0 : settings.get('speed');
 
 		$loaded.remove();
 
 		$loaded = $tag(div, 'LoadedContent').append(object);
-
+		
 		function getWidth() {
 			settings.w = settings.w || $loaded.width();
 			settings.w = settings.mw && settings.mw < settings.w ? settings.mw : settings.w;
@@ -1106,17 +1109,17 @@
 			settings.h = settings.mh && settings.mh < settings.h ? settings.mh : settings.h;
 			return settings.h;
 		}
-
+		
 		$loaded.hide()
 		.appendTo($loadingBay.show())// content has to be appended to the DOM for accurate size calculations.
 		.css({width: getWidth(), overflow: settings.get('scrolling') ? 'auto' : 'hidden'})
 		.css({height: getHeight()})// sets the height independently from the width in case the new width influences the value of height.
 		.prependTo($content);
-
+		
 		$loadingBay.hide();
-
+		
 		// floating the IMG removes the bottom line-height and fixed a problem where IE miscalculates the width of the parent element as 100% of the document width.
-
+		
 		$(photo).css({'float': 'none'});
 
 		setClass(settings.get('className'));
@@ -1125,17 +1128,17 @@
 			var total = $related.length,
 				iframe,
 				complete;
-
+			
 			if (!open) {
 				return;
 			}
-
+			
 			function removeFilter() { // Needed for IE8 in versions of jQuery prior to 1.7.2
 				if ($.support.opacity === false) {
 					$box[0].style.removeAttribute('filter');
 				}
 			}
-
+			
 			complete = function () {
 				clearTimeout(loadingTimer);
 				$loadingOverlay.hide();
@@ -1143,20 +1146,20 @@
 				settings.get('onComplete');
 			};
 
-
+			
 			$title.html(settings.get('title')).show();
 			$loaded.show();
-
+			
 			if (total > 1) { // handle grouping
 				if (typeof settings.get('current') === "string") {
 					$current.html(settings.get('current').replace('{current}', index + 1).replace('{total}', total)).show();
 				}
-
+				
 				$next[(settings.get('loop') || index < total - 1) ? "show" : "hide"]().html(settings.get('next'));
 				$prev[(settings.get('loop') || index) ? "show" : "hide"]().html(settings.get('previous'));
-
+				
 				slideshow();
-
+				
 				// Preloads images within a rel group
 				if (settings.get('preloading')) {
 					$.each([getIndex(-1), getIndex(1)], function(){
@@ -1175,14 +1178,14 @@
 			} else {
 				$groupControls.hide();
 			}
-
+			
 			if (settings.get('iframe')) {
 				iframe = document.createElement('iframe');
-
+				
 				if ('frameBorder' in iframe) {
 					iframe.frameBorder = 0;
 				}
-
+				
 				if ('allowTransparency' in iframe) {
 					iframe.allowTransparency = "true";
 				}
@@ -1190,7 +1193,7 @@
 				if (!settings.get('scrolling')) {
 					iframe.scrolling = "no";
 				}
-
+				
 				$(iframe)
 					.attr({
 						src: settings.get('href'),
@@ -1200,7 +1203,7 @@
 					})
 					.one('load', complete)
 					.appendTo($loaded);
-
+				
 				$events.one(event_purge, function () {
 					iframe.src = "//about:blank";
 				});
@@ -1211,14 +1214,14 @@
 			} else {
 				complete();
 			}
-
+			
 			if (settings.get('transition') === 'fade') {
 				$box.fadeTo(speed, 1, removeFilter);
 			} else {
 				removeFilter();
 			}
 		};
-
+		
 		if (settings.get('transition') === 'fade') {
 			$box.fadeTo(speed, 0, function () {
 				publicMethod.position(0, callback);
@@ -1230,27 +1233,27 @@
 
 	function load () {
 		var href, setResize, prep = publicMethod.prep, $inline, request = ++requests;
-
+		
 		active = true;
-
+		
 		photo = false;
-
+		
 		trigger(event_purge);
 		trigger(event_load);
 		settings.get('onLoad');
-
+		
 		settings.h = settings.get('height') ?
 				setSize(settings.get('height'), 'y') - loadedHeight - interfaceHeight :
 				settings.get('innerHeight') && setSize(settings.get('innerHeight'), 'y');
-
+		
 		settings.w = settings.get('width') ?
 				setSize(settings.get('width'), 'x') - loadedWidth - interfaceWidth :
 				settings.get('innerWidth') && setSize(settings.get('innerWidth'), 'x');
-
+		
 		// Sets the minimum dimensions for use in image scaling
 		settings.mw = settings.w;
 		settings.mh = settings.h;
-
+		
 		// Re-evaluate the minimum width and height based on maxWidth and maxHeight values.
 		// If the width or height exceed the maxWidth or maxHeight, use the maximum values instead.
 		if (settings.get('maxWidth')) {
@@ -1261,13 +1264,13 @@
 			settings.mh = setSize(settings.get('maxHeight'), 'y') - loadedHeight - interfaceHeight;
 			settings.mh = settings.h && settings.h < settings.mh ? settings.h : settings.mh;
 		}
-
+		
 		href = settings.get('href');
-
+		
 		loadingTimer = setTimeout(function () {
 			$loadingOverlay.show();
 		}, 100);
-
+		
 		if (settings.get('inline')) {
 			var $target = $(href);
 			// Inserts an empty placeholder where inline content is being pulled from.
@@ -1301,7 +1304,7 @@
 					return;
 				}
 
-				// A small pause because some browsers will occassionaly report a
+				// A small pause because some browsers will occassionaly report a 
 				// img.width and img.height of zero immediately after the img.onload fires
 				setTimeout(function(){
 					var percent;
@@ -1332,11 +1335,11 @@
 							setResize();
 						}
 					}
-
+					
 					if (settings.h) {
 						photo.style.marginTop = Math.max(settings.mh - photo.height, 0) / 2 + 'px';
 					}
-
+					
 					if ($related[1] && (settings.get('loop') || $related[index + 1])) {
 						photo.style.cursor = 'pointer';
 						photo.onclick = function () {
@@ -1349,7 +1352,7 @@
 					prep(photo);
 				}, 1);
 			});
-
+			
 			photo.src = href;
 
 		} else if (href) {
@@ -1360,7 +1363,7 @@
 			});
 		}
 	}
-
+		
 	// Navigates to the next page/image in a set.
 	publicMethod.next = function () {
 		if (!active && $related[1] && (settings.get('loop') || $related[index + 1])) {
@@ -1368,7 +1371,7 @@
 			launch($related[index]);
 		}
 	};
-
+	
 	publicMethod.prev = function () {
 		if (!active && $related[1] && (settings.get('loop') || index)) {
 			index = getIndex(-1);
@@ -1379,20 +1382,20 @@
 	// Note: to use this within an iframe use the following format: parent.jQuery.colorbox.close();
 	publicMethod.close = function () {
 		if (open && !closing) {
-
+			
 			closing = true;
 			open = false;
 			trigger(event_cleanup);
 			settings.get('onCleanup');
 			$window.unbind('.' + prefix);
 			$overlay.fadeTo(settings.get('fadeOut') || 0, 0);
-
+			
 			$box.stop().fadeTo(settings.get('fadeOut') || 0, 0, function () {
 				$box.hide();
 				$overlay.hide();
 				trigger(event_purge);
 				$loaded.remove();
-
+				
 				setTimeout(function () {
 					closing = false;
 					trigger(event_closed);
@@ -1804,7 +1807,7 @@
 
 
 /*!
- * jScrollPane - v2.0.21 - 2015-02-24
+ * jScrollPane - v2.0.20 - 2014-10-23
  * http://jscrollpane.kelvinluck.com/
  *
  * Copyright (c) 2014 Kelvin Luck
@@ -1813,7 +1816,7 @@
 
 // Script: jScrollPane - cross browser customisable scrollbars
 //
-// *Version: 2.0.21, Last updated: 2015-02-24*
+// *Version: 2.0.20, Last updated: 2014-10-23*
 //
 // Project Home - http://jscrollpane.kelvinluck.com/
 // GitHub       - http://github.com/vitch/jScrollPane
@@ -1837,14 +1840,13 @@
 // This plugin is tested on the browsers below and has been found to work reliably on them. If you run
 // into a problem on one of the supported browsers then please visit the support section on the jScrollPane
 // website (http://jscrollpane.kelvinluck.com/) for more information on getting support. You are also
-// welcome to fork the project on GitHub if you can contribute a fix for a given issue.
+// welcome to fork the project on GitHub if you can contribute a fix for a given issue. 
 //
 // jQuery Versions - tested in 1.4.2+ - reported to work in 1.3.x
 // Browsers Tested - Firefox 3.6.8, Safari 5, Opera 10.6, Chrome 5.0, IE 6, 7, 8
 //
 // About: Release History
 //
-// 2.0.21 - (2015-02-24) Simplify UMD pattern: fixes browserify when loading jQuery outside of bundle
 // 2.0.20 - (2014-10-23) Adds AMD support (thanks @carlosrberto) and support for overflow-x/overflow-y (thanks @darimpulso)
 // 2.0.19 - (2013-11-16) Changes for more reliable scroll amount with latest mousewheel plugin (thanks @brandonaaron)
 // 2.0.18 - (2013-10-23) Fix for issue with gutters and scrollToElement (thanks @Dubiy)
@@ -1868,18 +1870,21 @@
 //							 elements and dynamically sized elements.
 // 1.x - (2006-12-31 - 2010-07-31) Initial version, hosted at googlecode, deprecated
 
-(function (factory) {
+(function (plugin, window) {
+	var factory = function($){
+		return plugin($, window);
+	}
   if ( typeof define === 'function' && define.amd ) {
       // AMD. Register as an anonymous module.
       define(['jquery'], factory);
   } else if (typeof exports === 'object') {
       // Node/CommonJS style for Browserify
-      module.exports = factory(require('jquery'));
+      module.exports = factory;
   } else {
       // Browser globals
       factory(jQuery);
   }
-}(function($){
+}(function($,window,undefined){
 
 	$.fn.jScrollPane = function(settings)
 	{
@@ -1903,7 +1908,7 @@
 				originalPadding = elem.css('paddingTop') + ' ' +
 									elem.css('paddingRight') + ' ' +
 									elem.css('paddingBottom') + ' ' +
-									elem.css('paddingLeft');
+									elem.css('paddingLeft');	
 				originalPaddingTotalWidth = (parseInt(elem.css('paddingLeft'), 10) || 0) +
 											(parseInt(elem.css('paddingRight'), 10) || 0);
 			}
@@ -1933,7 +1938,7 @@
 					paneHeight = elem.innerHeight();
 
 					elem.width(paneWidth);
-
+					
 					pane = $('<div class="jspPane" />').css('padding', originalPadding).append(elem.children());
 					container = $('<div class="jspContainer" />')
 						.css({
@@ -1944,7 +1949,7 @@
 
 					/*
 					// Move any margins from the first and last children up to the container so they can still
-					// collapse with neighbouring elements as they would before jScrollPane
+					// collapse with neighbouring elements as they would before jScrollPane 
 					firstChild = pane.find(':first-child');
 					lastChild = pane.find(':last-child');
 					elem.css(
@@ -1979,7 +1984,7 @@
 						return;
 					}
 					previousContentWidth = contentWidth;
-
+					
 					pane.css('width', '');
 					elem.width(paneWidth);
 
@@ -2035,14 +2040,14 @@
 					initFocusHandler();
 					initMousewheel();
 					initTouch();
-
+					
 					if (settings.enableKeyboardNavigation) {
 						initKeyboardNav();
 					}
 					if (settings.clickOnTrack) {
 						initClickOnTrack();
 					}
-
+					
 					observeHash();
 					if (settings.hijackInternalLinks) {
 						hijackInternalLinks();
@@ -2303,7 +2308,7 @@
 			function appendArrows(ele, p, a1, a2)
 			{
 				var p1 = "before", p2 = "after", aTemp;
-
+				
 				// Sniff for mac... Is there a better way to determine whether the arrows would naturally appear
 				// at the top or the bottom of the bar?
 				if (p == "os") {
@@ -2418,7 +2423,7 @@
 						}
 					);
 				}
-
+				
 				if (isScrollableH) {
 					horizontalTrack.bind(
 						'mousedown.jsp',
@@ -2535,7 +2540,7 @@
 					wasAtBottom = isAtBottom;
 					elem.trigger('jsp-arrow-change', [wasAtTop, wasAtBottom, wasAtLeft, wasAtRight]);
 				}
-
+				
 				updateVerticalArrows(isAtTop, isAtBottom);
 				pane.css('top', destTop);
 				elem.trigger('jsp-scroll-y', [-destTop, isAtTop, isAtBottom]).trigger('scroll');
@@ -2582,7 +2587,7 @@
 					wasAtRight = isAtRight;
 					elem.trigger('jsp-arrow-change', [wasAtTop, wasAtBottom, wasAtLeft, wasAtRight]);
 				}
-
+				
 				updateHorizontalArrows(isAtLeft, isAtRight);
 				pane.css('left', destLeft);
 				elem.trigger('jsp-scroll-x', [-destLeft, isAtLeft, isAtRight]).trigger('scroll');
@@ -2632,7 +2637,7 @@
 
 				container.scrollTop(0);
 				container.scrollLeft(0);
-
+				
 				// loop through parents adding the offset top of any elements that are relatively positioned between
 				// the focused element and the jspPane so we can get the true distance from the top
 				// of the focused element to the top of the scrollpane...
@@ -2656,7 +2661,7 @@
 				if (!isNaN(destY)) {
 					scrollToY(destY, animate);
 				}
-
+				
 				viewportLeft = contentPositionX();
 	            maxVisibleEleLeft = viewportLeft + paneWidth;
 	            if (eleLeft < viewportLeft || stickToTop) { // element is to the left of viewport
@@ -2734,13 +2739,13 @@
 			{
 				pane.find(':input,a').unbind('focus.jsp');
 			}
-
+			
 			function initKeyboardNav()
 			{
 				var keyDown, elementHasScrolled, validParents = [];
 				isScrollableH && validParents.push(horizontalBar[0]);
 				isScrollableV && validParents.push(verticalBar[0]);
-
+				
 				// IE also focuses elements that don't have tabindex set.
 				pane.focus(
 					function()
@@ -2748,7 +2753,7 @@
 						elem.focus();
 					}
 				);
-
+				
 				elem.attr('tabindex', 0)
 					.unbind('keydown.jsp keypress.jsp')
 					.bind(
@@ -2793,7 +2798,7 @@
 							return !elementHasScrolled;
 						}
 					);
-
+				
 				if (settings.hideFocus) {
 					elem.css('outline', 'none');
 					if ('hideFocus' in container[0]){
@@ -2805,7 +2810,7 @@
 						elem.attr('hideFocus', false);
 					}
 				}
-
+				
 				function keyDownHandler()
 				{
 					var dX = horizontalDragPosition, dY = verticalDragPosition;
@@ -2835,7 +2840,7 @@
 					return elementHasScrolled;
 				}
 			}
-
+			
 			function removeKeyboardNav()
 			{
 				elem.attr('tabindex', '-1')
@@ -2947,7 +2952,7 @@
 					event.preventDefault();
 				});
 			}
-
+			
 			// Init touch on iPad, iPhone, iPod, Android
 			function initTouch()
 			{
@@ -2957,7 +2962,7 @@
 					touchStartY,
 					moved,
 					moving = false;
-
+  
 				container.unbind('touchstart.jsp touchmove.jsp touchend.jsp click.jsp-touchclick').bind(
 					'touchstart.jsp',
 					function(e)
@@ -2977,14 +2982,14 @@
 						if(!moving) {
 							return;
 						}
-
+						
 						var touchPos = ev.originalEvent.touches[0],
 							dX = horizontalDragPosition, dY = verticalDragPosition;
-
+						
 						jsp.scrollTo(startX + touchStartX - touchPos.pageX, startY + touchStartY - touchPos.pageY);
-
+						
 						moved = moved || Math.abs(touchStartX - touchPos.pageX) > 5 || Math.abs(touchStartY - touchPos.pageY) > 5;
-
+						
 						// return true if there was no movement so rest of screen can scroll
 						return dX == horizontalDragPosition && dY == verticalDragPosition;
 					}
@@ -3008,7 +3013,7 @@
 					}
 				);
 			}
-
+			
 			function destroy(){
 				var currentY = contentPositionY(),
 					currentX = contentPositionX();
@@ -3205,13 +3210,13 @@
 					}
 				}
 			);
-
+			
 			initialise(s);
 		}
 
 		// Pluginifying code...
 		settings = $.extend({}, $.fn.jScrollPane.defaults, settings);
-
+		
 		// Apply default speed
 		$.each(['arrowButtonSpeed', 'trackClickSpeed', 'keyboardSpeed'], function() {
 			settings[this] = settings[this] || settings.speed;
@@ -3267,8 +3272,7 @@
 		scrollPagePercent			: .8		// Percent of visible area scrolled when pageUp/Down or track area pressed
 	};
 
-}));
-
+},this));
 /**
  * Leeds talent pool scripts
  */
@@ -3338,10 +3342,8 @@
 	},
 	applyFilters = function()
 	{
-		var filters = $('#profile-filters').data('filters');
-		if ($.isEmptyObject(filters)){
-			removeFilters();
-		} else {
+		if ( hasFilters() ) {
+			var filters = $('#profile-filters').data('filters');
 			$('.ltp-profile-wrap').each(function(){
 				var hits = 0;
 				var filterCount = 0;
@@ -3379,7 +3381,8 @@
 	loadFilters = function()
 	{
 		var filters = $.cookie('ltp-filters');
-		if ( ! $.isEmptyObject(filters)) {
+		console.log(filters);
+		if ( typeof(filters) != 'undefined' ) {
 			// uncheck all filters
 			$('#profile-filters :checkbox').prop('checked', false);
 			// check relevant filter checkboxes
@@ -3388,16 +3391,23 @@
 					$('#'+filters[f][i]).prop('checked', true);
 				}
 			}
+		} else {
+			filters = {};
 		}
 		$('#profile-filters').data('filters', filters);
+		updateCurrentFilters();
 	},
 	hasFilters = function()
 	{
-		if ( ! $.isEmptyObject($('#profile-filters').data('filters')) ) {
-			return true;
-		} else {
+		var filters = $('#profile-filters').data('filters');
+		//console.log($.isEmptyObject(filters));
+		//console.log(typeof(filters));
+		//console.log(filters);
+		if ( typeof(filters) == 'undefined' || $.isEmptyObject(filters) ) {
+			//console.log('no filters defined');
 			return false;
 		}
+		return true;
 	},
 	hasSaved = function()
 	{
@@ -3409,27 +3419,36 @@
 	},
 	updateCurrentFilters = function()
 	{
-		var filters = {};
+		// make sure lists are formatted correctly
+		checkCheckboxLists();
+
+		// store filters and labels in here
+		var filters = {},
+			labels = {};
+
+		// go through checkboxes looking for active items
+		$('#profile-filters :checked').each(function(){
+			if ( ! filters[$(this).attr('name')] ) {
+				filters[$(this).attr('name')] = [];
+				labels[$(this).attr('name')] = [];
+			}
+			filters[$(this).attr('name')].push($(this).attr('id'));
+			labels[$(this).attr('name')].push($(this).data('filter-label'));
+		});
+
 		// clear existing text
 		$('.current-filters-list').each(function(){
 			$(this).text($(this).data('no-selection'));
 		});
-		// go through labels looking for active items
-		// must be called after checkCheckboxLists(!)
-		$('.checkbox-list label.active').each(function(){
-			if ( ! filters[$(this).data('filterid')] ) {
-				filters[$(this).data('filterid')] = [];
-			}
-			filters[$(this).data('filterid')].push($(this).attr('title'));
-		});
+
 		// set the items in the lists
 		if ( ! $.isEmptyObject(filters)) {
 			for (var f in filters) {
-				$('#current-'+f).text(filters[f].join(', '));
+				$('#current-filters-'+f).text(labels[f].join(', '));
 			}
-			$('#apply-filters,#delete-filters').show();
+			$('#delete-filters,#apply-filters').show();
 		} else {
-			$('#apply-filters,#delete-filters').hide();
+			$('#delete-filters,#apply-filters').hide();
 		}
 		// store as data and in cookie
 		$('#profile-filters').data('filters', filters);
@@ -3499,8 +3518,8 @@
 			$('#view-saved').hide();
 		}
 		if ( hasFilters() ) {
-			$('#view-filtered,#apply-filters,#edit-filters').show();
-			$('#view-all,#remove-filters,#show-filters').hide();
+			$('#view-filtered,#edit-filters').show();
+			$('#view-all,#remove-filters,#show-filters,#apply-filters').hide();
 		} else {
 			$('#show-filters').show();
 			$('#view-all,#view-filtered,#apply-filters,#edit-filters,#remove-filters').hide();
@@ -3558,9 +3577,6 @@
 		// load profiles
 		loadProfiles();
 
-		// apply formatting to checkbox lists
-		checkCheckboxLists();
-
 		// button to show saved profiles
 		$('#view-saved').on('click', function(e){
 			e.preventDefault();
@@ -3590,6 +3606,9 @@
 				if ( hasFilters() ) {
 					$('#apply-filters').show();
 					$('#delete-filters').show();
+				} else {
+					$('#apply-filters').hide();
+					$('#delete-filters').hide();
 				}
 			});
 			// hide the button
@@ -3600,6 +3619,7 @@
 
 		// button to apply filters to list
 		$('#apply-filters').on('click', function(e){
+			e.preventDefault();
 			showFilteredProfiles();
 			window.location.hash = 'filtered';
 			$('#profile-filters').slideUp();
@@ -3607,8 +3627,8 @@
 
 		// button to delete all filters
 		$('#delete-filters').on('click', function(e){
+			e.preventDefault();
 			$('#profile-filters :checkbox').prop('checked', false);
-			checkCheckboxLists();
 			updateCurrentFilters();
 			$('#profile-filters').slideUp(function(){
 				showAllProfiles();
@@ -3617,7 +3637,6 @@
 
 		// when a filter is updated, make sure class is applied and current filters displayed
 		$('#profile-filters .checkbox-list').on('click', 'label,input', function(){
-			checkCheckboxLists();
 			updateCurrentFilters();
 		});
 		
@@ -3681,9 +3700,12 @@
 						$('#save_'+data.profile_page_id).text('Save');
 						$('#save_'+data.profile_page_id).data('ajax_action', 'save');
 						$('#ltp_profile_wrap_'+data.profile_page_id).removeClass('saved');
+						if ( ! hasSaved() ) {
+							$('#view-saved').hide();
+						}
 						if ($('#profile-filters').data('showing') === 'saved') {
 							$('#ltp_profile_wrap_'+data.profile_page_id).hide();
-							if (!$('.ltp-profile-wrap.saved').length) {
+							if ( ! hasSaved() ) {
 								$('.ltp-profiles').append('<p class="message">No profiles have been saved</p>');
 							}
 						}
@@ -3693,6 +3715,8 @@
 				'json'
 			);
 		});
+		// reload interface when hash changes
+		window.onhashchange = loadProfiles;
 	}
 	$('.sticky').sticky();
 	$('.showcase-button').colorbox({

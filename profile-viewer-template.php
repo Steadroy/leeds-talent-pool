@@ -25,7 +25,8 @@ $post_status = ( ltp_is_admin() ) ? array('publish', 'draft'): 'publish';
 $people_pages = get_posts(array(
 	'post_type' => 'people',
 	'nopaging' => true,
-	'post_status' => $post_status
+	'post_status' => $post_status,
+	'orderby' => 'modified'
 ));
 ltp_data::save_actions();
 

@@ -262,7 +262,7 @@ if ( ! class_exists( 'ltp_template' ) ) {
 					foreach ( $data["options"] as $option ) {
 						$option_value = $filter . '-' . preg_replace('/[^a-zA-Z0-9]+/', '', $option);
 						//$toolbar .= sprintf('<label for="%s"><input type="checkbox" name="%s" id="%s" value="1"> %s</label>', $option_value, $filter, $option_value, $option );
-						$filter_controls .= sprintf('<label for="%s" title="%s" data-filterid="filters-%s"><input type="checkbox" name="%s" id="%s" value="1"> %s</label>', $option_value, esc_attr($option), $filter, $filter, $option_value, $option );
+						$filter_controls .= sprintf('<label for="%s"><input type="checkbox" name="%s" id="%s" value="1" data-filter-label="%s"> %s</label>', $option_value, $filter, $option_value, esc_attr($option), $option );
 					}
 					$filter_controls .= '</div>';
 					//$toolbar .= '</div></div>';

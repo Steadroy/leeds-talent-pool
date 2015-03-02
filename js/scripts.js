@@ -67,10 +67,8 @@
 	},
 	applyFilters = function()
 	{
-		var filters = $('#profile-filters').data('filters');
-		if ($.isEmptyObject(filters)){
-			removeFilters();
-		} else {
+		if ( hasFilters() ) {
+			var filters = $('#profile-filters').data('filters');
 			$('.ltp-profile-wrap').each(function(){
 				var hits = 0;
 				var filterCount = 0;
@@ -108,7 +106,8 @@
 	loadFilters = function()
 	{
 		var filters = $.cookie('ltp-filters');
-		if ( ! $.isEmptyObject(filters)) {
+		console.log(filters);
+		if ( typeof(filters) != 'undefined' ) {
 			// uncheck all filters
 			$('#profile-filters :checkbox').prop('checked', false);
 			// check relevant filter checkboxes
@@ -117,16 +116,23 @@
 					$('#'+filters[f][i]).prop('checked', true);
 				}
 			}
+		} else {
+			filters = {};
 		}
 		$('#profile-filters').data('filters', filters);
+		updateCurrentFilters();
 	},
 	hasFilters = function()
 	{
-		if ( ! $.isEmptyObject($('#profile-filters').data('filters')) ) {
-			return true;
-		} else {
+		var filters = $('#profile-filters').data('filters');
+		//console.log($.isEmptyObject(filters));
+		//console.log(typeof(filters));
+		//console.log(filters);
+		if ( typeof(filters) == 'undefined' || $.isEmptyObject(filters) ) {
+			//console.log('no filters defined');
 			return false;
 		}
+		return true;
 	},
 	hasSaved = function()
 	{
@@ -138,27 +144,36 @@
 	},
 	updateCurrentFilters = function()
 	{
-		var filters = {};
+		// make sure lists are formatted correctly
+		checkCheckboxLists();
+
+		// store filters and labels in here
+		var filters = {},
+			labels = {};
+
+		// go through checkboxes looking for active items
+		$('#profile-filters :checked').each(function(){
+			if ( ! filters[$(this).attr('name')] ) {
+				filters[$(this).attr('name')] = [];
+				labels[$(this).attr('name')] = [];
+			}
+			filters[$(this).attr('name')].push($(this).attr('id'));
+			labels[$(this).attr('name')].push($(this).data('filter-label'));
+		});
+
 		// clear existing text
 		$('.current-filters-list').each(function(){
 			$(this).text($(this).data('no-selection'));
 		});
-		// go through labels looking for active items
-		// must be called after checkCheckboxLists(!)
-		$('.checkbox-list label.active').each(function(){
-			if ( ! filters[$(this).data('filterid')] ) {
-				filters[$(this).data('filterid')] = [];
-			}
-			filters[$(this).data('filterid')].push($(this).attr('title'));
-		});
+
 		// set the items in the lists
 		if ( ! $.isEmptyObject(filters)) {
 			for (var f in filters) {
-				$('#current-'+f).text(filters[f].join(', '));
+				$('#current-filters-'+f).text(labels[f].join(', '));
 			}
-			$('#apply-filters,#delete-filters').show();
+			$('#delete-filters,#apply-filters').show();
 		} else {
-			$('#apply-filters,#delete-filters').hide();
+			$('#delete-filters,#apply-filters').hide();
 		}
 		// store as data and in cookie
 		$('#profile-filters').data('filters', filters);
@@ -228,8 +243,8 @@
 			$('#view-saved').hide();
 		}
 		if ( hasFilters() ) {
-			$('#view-filtered,#apply-filters,#edit-filters').show();
-			$('#view-all,#remove-filters,#show-filters').hide();
+			$('#view-filtered,#edit-filters').show();
+			$('#view-all,#remove-filters,#show-filters,#apply-filters').hide();
 		} else {
 			$('#show-filters').show();
 			$('#view-all,#view-filtered,#apply-filters,#edit-filters,#remove-filters').hide();
@@ -287,9 +302,6 @@
 		// load profiles
 		loadProfiles();
 
-		// apply formatting to checkbox lists
-		checkCheckboxLists();
-
 		// button to show saved profiles
 		$('#view-saved').on('click', function(e){
 			e.preventDefault();
@@ -319,6 +331,9 @@
 				if ( hasFilters() ) {
 					$('#apply-filters').show();
 					$('#delete-filters').show();
+				} else {
+					$('#apply-filters').hide();
+					$('#delete-filters').hide();
 				}
 			});
 			// hide the button
@@ -329,6 +344,7 @@
 
 		// button to apply filters to list
 		$('#apply-filters').on('click', function(e){
+			e.preventDefault();
 			showFilteredProfiles();
 			window.location.hash = 'filtered';
 			$('#profile-filters').slideUp();
@@ -336,8 +352,8 @@
 
 		// button to delete all filters
 		$('#delete-filters').on('click', function(e){
+			e.preventDefault();
 			$('#profile-filters :checkbox').prop('checked', false);
-			checkCheckboxLists();
 			updateCurrentFilters();
 			$('#profile-filters').slideUp(function(){
 				showAllProfiles();
@@ -346,7 +362,6 @@
 
 		// when a filter is updated, make sure class is applied and current filters displayed
 		$('#profile-filters .checkbox-list').on('click', 'label,input', function(){
-			checkCheckboxLists();
 			updateCurrentFilters();
 		});
 		
@@ -410,9 +425,12 @@
 						$('#save_'+data.profile_page_id).text('Save');
 						$('#save_'+data.profile_page_id).data('ajax_action', 'save');
 						$('#ltp_profile_wrap_'+data.profile_page_id).removeClass('saved');
+						if ( ! hasSaved() ) {
+							$('#view-saved').hide();
+						}
 						if ($('#profile-filters').data('showing') === 'saved') {
 							$('#ltp_profile_wrap_'+data.profile_page_id).hide();
-							if (!$('.ltp-profile-wrap.saved').length) {
+							if ( ! hasSaved() ) {
 								$('.ltp-profiles').append('<p class="message">No profiles have been saved</p>');
 							}
 						}
@@ -422,6 +440,8 @@
 				'json'
 			);
 		});
+		// reload interface when hash changes
+		window.onhashchange = loadProfiles;
 	}
 	$('.sticky').sticky();
 	$('.showcase-button').colorbox({
