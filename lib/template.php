@@ -66,7 +66,7 @@ if ( ! class_exists( 'ltp_template' ) ) {
 			return $userdata;
 		}
 
-		public static function get_vcard( $student, $page_id, $left = false )
+		public static function get_vcard( $student, $page_id, $latest )
 		{
 			global $current_user;
 
@@ -78,7 +78,7 @@ if ( ! class_exists( 'ltp_template' ) ) {
 				"expertise"
 			);
 			//$vcard = '<pre>' . print_r($student, true) . '</pre>';
-			$classes = $left ? "left ": "right ";
+			$classes = $latest? "latest": "";
 			foreach ( $filter_attr as $att ) {
 				if ( isset( $student[$att] ) && is_array( $student[$att] ) && count( $student[$att] ) ) {
 					foreach ( $student[$att]  as $val ) {
@@ -97,6 +97,7 @@ if ( ! class_exists( 'ltp_template' ) ) {
 				$vcard .= sprintf('<div class="photo"><img title="%s" src="%s"></div>', esc_attr($fullname), $photo_thumb[0] );
 			}
 			$vcard .= sprintf('<h2 class="full-name">%s</h2>', $fullname);
+			$vcard .= sprintf('<p><strong>Email:</strong> <a href="mailto:%s" title="Email %s">%s</a></p>', $student["user"]->data->user_email, esc_attr( $fullname ), $student["user"]->data->user_email);
 			if ( isset( $student['qualifications'] ) && $student['qualifications'] !== '' ) {
 				$vcard .= sprintf('<p><strong>Qualifications:</strong> %s</p>', $student['qualifications'] );
 			}
@@ -128,7 +129,7 @@ if ( ! class_exists( 'ltp_template' ) ) {
 		 */
 		public static function profile_toolbar( $has_page, $is_published )
 		{
-			$toolbar = '<div class="section sticky"><h3>Profile Completion</h3><div class="completion-meter"><span></span></div>';
+			$toolbar = '<div class="section sticky"><h3>Profile Completion</h3><div class="completion-meter"><span></span></div><div class="toolbar-buttons">';
 			if ( ! $is_published ) {
 				$toolbar .= '<button name="preview" class="ppt-button ppt-preview-button">Preview</button>';
 			} else {
@@ -145,7 +146,7 @@ if ( ! class_exists( 'ltp_template' ) ) {
 			if ( $has_page && $is_published ) {
 				$toolbar .= '<button name="unpublish" class="ppt-button ppt-unpublish-button">Un-publish</button>';
 			}
-			$toolbar .= '</div>';
+			$toolbar .= '</div></div>';
 			return $toolbar;
 		}
 
@@ -155,11 +156,13 @@ if ( ! class_exists( 'ltp_template' ) ) {
 		 */
 		public static function wpp_profile_toolbar( $user_id, $profile_page_id, $cv_URL = false )
 		{
-			$toolbar = sprintf('<form action="%s" method="post">', $_SERVER["REQUEST_URI"] );
+			$toolbar = self::get_status_line( $user_id );
+			$saved_profiles = ltp_data::has_saved( $user_id );
+			$toolbar .= sprintf('<form action="%s" method="post" class="toolbar-buttons">', $_SERVER["REQUEST_URI"] );
 			$toolbar .= sprintf('<input type="hidden" name="user_id" value="%s">', $user_id );
 			$toolbar .= sprintf('<input type="hidden" name="profile_page_id" value="%s">', $profile_page_id );
 			$toolbar .= sprintf('<a class="profile-button" href="%s">View all profiles</a>', ltp_get_page_url('viewer'));
-			if ( ltp_data::has_saved( $user_id ) ) {
+			if ( $saved_profiles ) {
 				$toolbar .= sprintf('<a class="profile-button" href="%s#saved">View Saved Profiles</a>', ltp_get_page_url('viewer'));
 			}
 			if ( $cv_URL ) {
@@ -176,13 +179,31 @@ if ( ! class_exists( 'ltp_template' ) ) {
 		}
 
 		/**
+		 * gets a status line for the WPP toolbar
+		 */
+		public static function get_status_line( $user_id, $last_login_date, $profiles_modified )
+		{
+			$added_profiles = '';
+			if ( $last_login_date == false ) {
+				$last_login = "never";
+			} else {
+				$last_login = date('l jS \of F Y, H:i', $last_login_date);
+				if ( count( $profiles_modified ) ) {
+					$added_profiles = sprintf(' | Profiles uodated since your last login: <strong>%s</strong>', count( $profiles_modified ) );
+				}
+			}
+			$history_link = ltp_data::user_has_history( $user_id )? ' | <a href="#" class="history" data-start="0" data-num="20" data-user_id="' . $user_id . '">History</a>': '';
+			return sprintf('<div class="status">Last login: %s%s</div>', $last_login, $history_link, $added_profiles);
+		}
+
+		/**
 		 * returns a set of buttons used on individual profiles in list view to enable saving
 		 * and removing profiles via ajax
 		 */
 		public static function wpp_profile_buttons( $user_id, $profile_page_id )
 		{
 			$data_attr = sprintf(' data-user_id="%s" data-profile_page_id="%s"', $user_id, $profile_page_id);
-			$buttons = sprintf('<a class="profile-button" href="%s">View Profile</a>', get_permalink( $profile_page_id ) );
+			$buttons = sprintf('<a class="profile-button ajax-button" data-ajax_action="view" href="%s"%s>View Profile</a>', get_permalink( $profile_page_id ), $data_attr );
 			if ( ltp_data::is_saved( $user_id, $profile_page_id ) ) {
 				$buttons .= sprintf('<a href="#" id="save_%s" data-ajax_action="remove" class="profile-button ajax-button"%s>Remove</a>', $profile_page_id, $data_attr);
 			} else {
@@ -195,10 +216,10 @@ if ( ! class_exists( 'ltp_template' ) ) {
 		 * returns a sticky toolbar for WPP users which will appear at the top of the profile viewer page
 		 * includes filters and links to saved profiles, etc.
 		 */
-		public static function wpp_toolbar( )
+		public static function wpp_toolbar( $user_id, $last_login_date, $profiles_added )
 		{
-			global $current_user;
-			$toolbar = '<div class="toolbar-buttons">';
+			$toolbar = self::get_status_line( $user_id, $last_login_date, $profiles_added );
+			$toolbar .= '<div class="toolbar-buttons">';
 			
 			// View buttons
 			
@@ -208,6 +229,8 @@ if ( ! class_exists( 'ltp_template' ) ) {
 			$toolbar .= '<a href="#saved" id="view-saved" class="profile-button">View Saved Profiles</a>';
 			// view filtered profiles button
 			$toolbar .= '<a href="#filtered" id="view-filtered" class="profile-button">View Filtered Profiles</a>';
+			// view latest profiles button
+			$toolbar .= '<a href="#latest" id="view-latest" class="profile-button">View Latest Profiles</a>';
 			
 			// Filters control buttons
 			
@@ -257,7 +280,7 @@ if ( ! class_exists( 'ltp_template' ) ) {
 				$active = ($filter === "expertise") ? ' active': '';;
 				if ( count( $data["options"] ) ) {
 					$filter_list .= sprintf('<li><a href="#filters-%s" class="show-filter-controls%s">%s</a><span class="current-filters-list" id="current-filters-%s" data-no-selection="%s"></span></li>', $filter, $active, $data["label"], $filter, esc_attr($data["no-selection"]) );
-					$filter_controls .= sprintf('<div class="checkbox-list %s" id="filters-%s">', $active, $filter);
+					$filter_controls .= sprintf('<div class="checkbox-list %s" id="filters-%s"><a class="select-filters-button all" href="#" data-selectid="filters-%s" title="Select all">select all</a><a class="select-filters-button none" href="#" data-selectid="filters-%s" title="Select none">select none</a>', $active, $filter, $filter, $filter);
 					//$toolbar .= sprintf('<p class="label">%s</p><div class="checkbox-list" id="filters-%s">', $data["label"], $filter );
 					foreach ( $data["options"] as $option ) {
 						$option_value = $filter . '-' . preg_replace('/[^a-zA-Z0-9]+/', '', $option);
@@ -268,10 +291,9 @@ if ( ! class_exists( 'ltp_template' ) ) {
 					//$toolbar .= '</div></div>';
 				}
 			}
-			$filter_list .= '</ul><a href="#" id="delete-filters" class="profile-button">Delete filters</a></div>';
+			$filter_list .= '</ul><a href="#" id="delete-filters" class="profile-button">Delete filters</a><a href="#" id="cancel-filters" class="profile-button">Cancel</a></div>';
 			$filter_controls .= '</div>';
 			$toolbar .= $filter_list . $filter_controls . '</div>';
-			$toolbar .= '</form>';
 			return $toolbar;
 		}
 

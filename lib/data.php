@@ -17,6 +17,9 @@ if ( ! class_exists( 'ltp_data' ) ) {
 		{
 			/* ajax handler for updates */
 			add_action( 'wp_ajax_ltp_data', array( __CLASS__, 'ajax_actions' ) );
+
+			/* login handler */
+			add_action( 'wp_login', array( __CLASS__, 'log_login' ), 10, 2 );
 		}
 
 		/**
@@ -98,7 +101,7 @@ if ( ! class_exists( 'ltp_data' ) ) {
 				global $current_user;
 				$ret = array();
 				$ret["user_id"] = ( isset( $_REQUEST["user_id"] ) ) ? $_REQUEST["user_id"] : $current_user->ID;
-				$ret["profile_page_id"] = $_REQUEST["profile_page_id"];
+				$ret["profile_page_id"] = isset($_REQUEST["profile_page_id"])? $_REQUEST["profile_page_id"]: 0;
 				$ret["ajax_action"] = $_REQUEST["ajax_action"];
 				switch ( $ret["ajax_action"] ) {
 					case 'save':
@@ -106,6 +109,17 @@ if ( ! class_exists( 'ltp_data' ) ) {
 						break;
 					case 'remove':
 						$ret["result"] = self::remove_profile( $ret["user_id"], $ret["profile_page_id"] );
+						break;
+					case 'history':
+						$start = isset( $_REQUEST["start"] )? $_REQUEST["start"]: 0;
+						$num = isset( $_REQUEST["num"] )? $_REQUEST["num"]: 20;
+						$ret["result"] = self::get_history_html( $ret["user_id"], $start, $num );
+						break;
+					case 'view':
+						$ret["result"] = self::log_view( $ret["user_id"], $ret["profile_page_id"] );
+						break;
+					case 'cv_download':
+						$ret["result"] = self::log_cv_download( $ret["user_id"], $ret["profile_page_id"] );
 						break;
 				}
 				print(json_encode($ret));
@@ -143,8 +157,12 @@ if ( ! class_exists( 'ltp_data' ) ) {
 					$profile_page_id = intVal( $data["profile_page_id"] );
 				}
 
-				// derive username from page_id
-				$profile_username = get_post_meta( $profile_page_id, 'wp_username', true );
+				if ( $profile_page_id ) {
+					// derive username from page_id
+					$profile_username = get_post_meta( $profile_page_id, 'wp_username', true );
+				} else {
+					$profile_username = '';
+				}
 				
 				// make sure we have an entry type
 				$entry_type = ( ! isset( $data["entry_type"] ) ) ? 'log': trim( $data["entry_type"] );
@@ -283,6 +301,24 @@ if ( ! class_exists( 'ltp_data' ) ) {
 		}
 
 		/**
+		 * logs a user login
+		 * @var string user_login
+		 * @var object WP_User object
+		 */
+		public static function log_login( $username, $user )
+		{
+			self::log( array(
+				"user_id" => $user->ID,
+				"profile_page_id" => 0,
+				"entry_type" => "login"
+			) );
+		}
+
+		/********************************************************
+		 * Methods to get data for student profile pages        *
+		 ********************************************************/
+
+		/**
 		 * gets the number of views of a profile
 		 * @var integer profile page ID
 		 */
@@ -290,7 +326,11 @@ if ( ! class_exists( 'ltp_data' ) ) {
 		{
 			global $wpdb;
 			$tablename = self::get_data_tablename();
-			return $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) FROM $tablename WHERE `profile_page_id` = %d AND `entry_type` = 'view'", $profile_page_id ) );
+			$row = $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) as views FROM $tablename WHERE `profile_page_id` = %d AND `entry_type` = 'view'", $profile_page_id ) );
+			if ( $row ) {
+				return $row;
+			}
+			return false;
 		}
 
 		/**
@@ -301,7 +341,11 @@ if ( ! class_exists( 'ltp_data' ) ) {
 		{
 			global $wpdb;
 			$tablename = self::get_data_tablename();
-			return $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) FROM $tablename WHERE `profile_username` = %s AND `entry_type` = 'view'", $profile_username ) );
+			$row = $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) as views FROM $tablename WHERE `profile_username` = %s AND `entry_type` = 'view'", $profile_username ) );
+			if ( $row ) {
+				return $row;
+			}
+			return false;
 		}
 
 		/**
@@ -312,7 +356,11 @@ if ( ! class_exists( 'ltp_data' ) ) {
 		{
 			global $wpdb;
 			$tablename = self::get_data_tablename();
-			return $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) FROM $tablename WHERE `profile_page_id` = %d AND `entry_type` = 'saved'", $profile_page_id ) );
+			$row =  $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) as saves FROM $tablename WHERE `profile_page_id` = %d AND `entry_type` = 'saved'", $profile_page_id ) );
+			if ( $row ) {
+				return $row;
+			}
+			return false;
 		}
 
 		/**
@@ -323,7 +371,11 @@ if ( ! class_exists( 'ltp_data' ) ) {
 		{
 			global $wpdb;
 			$tablename = self::get_data_tablename();
-			return $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) FROM $tablename WHERE `profile_username` = %s AND `entry_type` = 'saved'", $profile_username ) );
+			$row = $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) as saves FROM $tablename WHERE `profile_username` = %s AND `entry_type` = 'saved'", $profile_username ) );
+			if ( $row ) {
+				return $row;
+			}
+			return false;
 		}
 
 		/**
@@ -334,7 +386,11 @@ if ( ! class_exists( 'ltp_data' ) ) {
 		{
 			global $wpdb;
 			$tablename = self::get_data_tablename();
-			return $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) FROM $tablename WHERE `profile_page_id` = %d AND `entry_type` = 'cv_download'", $profile_page_id ) );
+			$row = $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) as downloads FROM $tablename WHERE `profile_page_id` = %d AND `entry_type` = 'cv_download'", $profile_page_id ) );
+			if ( $row ) {
+				return $row;
+			}
+			return false;
 		}
 
 		/**
@@ -345,7 +401,238 @@ if ( ! class_exists( 'ltp_data' ) ) {
 		{
 			global $wpdb;
 			$tablename = self::get_data_tablename();
-			return $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) FROM $tablename WHERE `profile_username` = %s AND `entry_type` = 'cv_download'", $profile_username ) );
+			$row = $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) as downloads FROM $tablename WHERE `profile_username` = %s AND `entry_type` = 'cv_download'", $profile_username ) );
+			if ( $row ) {
+				return $row;
+			}
+			return false;
+		}
+
+		/********************************************************
+		 * Methods to get data for WPP page footer              *
+		 ********************************************************/
+
+		/**
+		 * gets the date of the previous login (or date of last login if only one)
+		 * @var integer ID of WPP user
+		 */
+		public static function get_previous_login( $user_id = false )
+		{
+			if ( $user_id ) {
+				global $wpdb;
+				$tablename = self::get_data_tablename();
+				$logins = $wpdb->get_results( $wpdb->prepare("SELECT `access_time` FROM $tablename WHERE `entry_type` = 'login' AND `user_id` = %d ORDER BY `access_time` DESC LIMIT 2;", $user_id ) );
+				if ( count( $logins ) === 2 ) {
+					return $logins[1]->access_time;
+				} elseif ( count( $logins ) === 1 ) {
+					return $logins[0]->access_time;
+				} 
+			}
+			return false;
+		}
+
+		/**
+		 * gets the date of the last recorded login
+		 * @var integer ID of WPP user
+		 */
+		public static function get_last_login( $user_id = false )
+		{
+			if ( $user_id ) {
+				global $wpdb;
+				$tablename = self::get_data_tablename();
+				$login = $wpdb->get_row( $wpdb->prepare("SELECT `access_time` FROM $tablename WHERE `entry_type` = 'login' AND `user_id` = %d ORDER BY `access_time` DESC LIMIT 1;", $user_id ) );
+				if ( $login ) {
+					return $login->access_time;
+				} else {
+					return false;
+				}
+			}
+			return false;
+		}
+
+
+		/**
+		 * gets the profiles added since a given date
+		 */
+		public static function get_profiles_modified_since( $timestamp = false )
+		{
+			if ( ! $timestamp ) {
+				$timestamp = time();
+			}
+			$year = date('Y', $timestamp);
+			$month = date('n', $timestamp);
+			$day = date('j', $timestamp);
+			$people_pages = get_posts(array(
+				'post_type' => 'people',
+				'numberposts' => -1,
+				'nopaging' => true,
+				'status' => 'publish',
+				'date_query' => array(
+					array(
+						'column' => 'post_date',
+						'after' => array(
+							'year' => $year,
+							'month' => $month,
+							'day' => $day
+						),
+						'inclusive' => true
+					)
+				)
+			));
+			return $people_pages;
+		}
+
+		/**
+		 * checks whether a WPP user has any history
+		 */
+		public static function user_has_history( $user_id = false )
+		{
+			if ( $user_id ) {
+				global $wpdb;
+				$tablename = self::get_data_tablename();
+				return $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) FROM $tablename WHERE `user_id` = %d and `entry_type` IN('view','saved','removed','cv-download');", $user_id ) );
+			}
+		}
+
+
+		/**
+		 * gets the view history of a WPP user
+		 */
+		private static function get_user_history( $user_id = false, $start = 0, $num = 20 )
+		{
+			if ( $user_id ) {
+				global $wpdb;
+				$tablename = self::get_data_tablename();
+				$start = abs(intval($start));
+				$num = intval($num) === 0? 20: abs(intval($num));
+				$history = $wpdb->get_results( $wpdb->prepare("SELECT * FROM $tablename WHERE `user_id` = %d and `entry_type` IN('view','saved','removed','cv-download') ORDER BY `access_time` DESC LIMIT $start, $num;", $user_id ) );
+				return $history;
+			}
+			return array();
+		}
+
+		/**
+		 * processes history entries and returns HTML for ajax requests
+		 */
+		private static function get_history_html( $user_id = false, $start = 0, $num = 20 )
+		{
+			$total = self::user_has_history($user_id);
+			$out = '';
+			if ( $total ) {
+				$history = self::get_user_history( $user_id, $start, $num );
+				$people_pages = self::get_people_pages_for_results( $history );
+				if ( count( $history ) ) {
+					$nav = '';
+					//$out .= "<p>Start: " . $start . "<br>Num: " . $num . "</p><pre>" . print_r($history, true) . '</pre>';
+					//$out .= '<pre>' . print_r($people_pages, true) . '</pre>';
+					if ( $start > 0 ) {
+						$nav .= sprintf( '<a href="#" class="history previous" data-start="%s" data-num="%s" data-user_id="%s">&laquo; previous</a>', ( $start - $num ), $num, $user_id );
+					}
+					if ( ($start + $num) < $total ) {
+						$nav .= sprintf( '<a href="#" class="history next" data-start="%s" data-num="%s" data-user_id="%s">next &raquo;</a>', ( $start + $num ), $num, $user_id );
+					}
+					$actions = array();
+					foreach( $history as $action ) {
+						foreach ( $people_pages as $page ) {
+							if ( $page->ID == $action->profile_page_id ) {
+								$action->profile_url = get_permalink( $page->ID );
+								$action->profile_title = $page->post_title;
+								break;
+							}
+						}
+						$datestr = date('Ymd', $action->access_time);
+						if ( !isset( $actions[$datestr] ) ) {
+							$actions[$datestr] = array();
+						}
+						$actions[$datestr][] = $action;
+					}
+					$out .= $nav;
+					foreach ( $actions as $datestr => $entries ) {
+						$out .= sprintf('<h3>%s</h3><table class="historytable"><thead><tr><th>Profile</th><th>Action</th><th>Time</th></tr></thead><tbody>', date( 'l jS F, Y', $entries[0]->access_time ) );
+						foreach ( $entries as $entry ) {
+							$out .= sprintf('<tr><td><a href="%s">%s</a></td><td>%s</td><td>%s</td></tr>', $entry->profile_url, $entry->profile_title, $entry->entry_type, date( 'g:i:sa', $entry->access_time ) );
+						}
+						$out .= '</tbody></table>';
+					}
+					$out .= $nav;
+				}
+			}
+			return $out;
+		}
+
+		/**
+		 * gets a summary of data saved for all WPP users
+		 */
+		public static function get_summary_data()
+		{
+			global $wpdb;
+			$tablename = self::get_data_tablename();
+			$results = $wpdb->get_results( "SELECT COUNT(*) as `count`, `entry_type`, `user_id` FROM $tablename GROUP BY `entry_type`, `user_id`;" );
+			$users = array();
+			if ( count( $results ) ) {
+				foreach ( $results as $row ) {
+					if ( ! isset( $users[$row->user_id] ) ) {
+						$users[$row->user_id] = array(
+							"login" => 0,
+							"view" => 0,
+							"saved" => 0
+						);
+					}
+					$users[$row->user_id][$row->entry_type] = $row->count;
+				}
+			}
+			return $users;
+		}
+
+		/**
+		 * gets saved profiles for a WPP user
+		 * @param integer user ID of WPP user
+		 */
+		public static function get_saved_profiles( $user_id = false )
+		{
+			if ( $user_id !== false ) {
+				global $wpdb;
+				$tablename = self::get_data_tablename();
+				$saved = $wpdb->get_results( $wpdb->prepare("SELECT * FROM $tablename WHERE `entry_type` = 'saved'  AND `user_id` = %d;", $user_id ) );
+				return self::get_people_pages_for_results( $saved );
+			}
+		}
+
+		/**
+		 * returns pages from an array of post IDs (shortcut)
+		 */
+		private static function get_people_pages_for_results( $results = array() )
+		{
+			$people_pages = array();
+			if ( $results && count( $results ) ) {
+				$posts_in = array();
+				foreach ( $results as $row ) {
+					if ( $row->profile_page_id > 0 ) {
+						array_push( $posts_in, $row->profile_page_id );
+					}
+				}
+				if ( count( $posts_in ) ) {
+					$people_pages = get_posts(array(
+						'post_type' => 'people',
+						'numberposts' => -1,
+						'nopaging' => true,
+						'post_status' => 'any',
+						'post__in' => $posts_in
+					));
+					/* now merge back the info from the original query */
+					for ( $i = 0; $i < count($people_pages); $i++ ) {
+						foreach ( $results as $row ) {
+							if ( $people_pages[$i]->ID == $row->profile_page_id ) {
+								$people_pages[$i]->access_time = $row->access_time;
+								$people_pages[$i]->entry_type = $row->entry_type;
+								$people_pages[$i]->profile_username = $row->profile_username;
+								break;
+							}
+						}
+					}
+				}
+			}
+			return $people_pages;
 		}
 	}
 	ltp_data::register();

@@ -36,7 +36,7 @@ if (have_posts()) : while (have_posts()) : the_post();
 
 	// log view if wpp user
 	if ( ltp_is_wpp() ) {
-		ltp_data::log_view($current_user->ID, $post->ID);
+		//ltp_data::log_view($current_user->ID, $post->ID);
 	}
 
 	/* start profile output */
@@ -55,6 +55,7 @@ if (have_posts()) : while (have_posts()) : the_post();
 		print( ltp_template::wpp_profile_toolbar( $current_user->ID, $post->ID ) );
 	} elseif ( $current_user->ID == $user->ID ) {
 		// student toolbar
+		printf( '<div class="status">Profile views: %d | Profile saves: %d | CV downloads: %d</div>', ltp_data::get_views($post->ID), ltp_data::get_saves($post->ID), ltp_data::get_downloads($post->ID) );
 		printf( '<form action="%s" method="post">', get_permalink( $options["builder_page_id"] ) );
 		print( '<button name="return" class="ppt-button ppt-return-button">Return to profile builder</button>' );
 		if ( $post->post_status !== 'publish' ) {
@@ -77,30 +78,52 @@ if (have_posts()) : while (have_posts()) : the_post();
 		printf('<div class="photo"><a href="%s" title="%s"><img src="%s"></a></div>', $photo_large[0], esc_attr($post->post_title), $photo_thumb[0] );
 	}
 	printf('<h2 class="full-name">%s</h2>', $post->post_title);
-	printf('<p><strong>Qualifications:</strong> %s</p>', get_user_meta( $user->ID, 'qualifications', true) );
-	$loc = get_user_meta( $current_user->ID, 'region', true );
+	printf('<p><strong>Email:</strong> <a href="mailto:%s" title="Email %s">%s</a></p>', $user->data->user_email, esc_attr( $post->post_title ), $user->data->user_email);
+	$qualifications = get_user_meta( $user->ID, 'qualifications', true);
+	if ( trim( $qualifications ) !== '' ) {
+		printf('<p><strong>Qualifications:</strong> %s</p>', get_user_meta( $user->ID, 'qualifications', true) );
+	}
+	$loc = get_user_meta( $user->ID, 'region', true );
 	if ( is_array($loc) && count($loc) && $loc[0] !== 'null' ) {
 		printf('<p><strong>Current location:</strong> %s</p>', $loc[0] );
 	}
-	printf('<p><strong>Willing to work in:</strong> %s</p>', implode(", ", get_user_meta( $user->ID, 'desired_region', true) ) );
+	$desired_loc = get_user_meta( $user->ID, 'desired_region', true);
+	if ( is_array($desired_loc) && count($desired_loc) && $desired_loc[0] !== 'null' ) {
+		printf('<p><strong>Willing to work in:</strong> %s</p>', implode(", ", $desired_loc ) );
+	}
 	$exp = get_user_meta( $user->ID, 'experience', true );
 	if ( is_array($exp) && count($exp) && $exp[0] !== 'null' ) {
 		printf('<p><strong>Experience (years):</strong> %s</p>',  $exp[0]);
 	}
-	printf('<p><strong>Expertise:</strong> %s</p>', implode(", ", get_user_meta( $user->ID, 'expertise', true) ) );
+	$expertise = get_user_meta( $user->ID, 'expertise', true);
+	if ( is_array($expertise) && count($expertise) && $expertise[0] !== 'null' ) {
+		printf('<p><strong>Expertise:</strong> %s</p>', implode(", ", $expertise ) );
+	}
 	if ( ! ltp_is_wpp() && ! empty( $cv_URL ) ) {
 		printf('<p><a href="%s" class="profile-button">Download CV</a></p>', $cv_URL );
 	}
 	print('</div>');
 	print( apply_filters('the_content', get_user_meta( $user->ID, 'statement', true ) ) );
-	print('<h2 class="showcase-title">Student Creative/Analytical Showcase</h2>');
-	print('<div class="showcase-thumbs">');
 
-
+	// showcases
 	$full_text = array();
+	$complete = array();
+	$thumbs = '';
 	for ( $i = 1; $i <= 3; $i++ ) {
-		$full_text["sc" . $i] = sprintf( '<div class="showcase" id="showcase-%d"><h3>%s</h3>', $i, get_user_meta( $current_user->ID, 'showcase' . $i . '_title', true ) );
+		$showcase_title = get_user_meta( $current_user->ID, 'showcase' . $i . '_title', true );
 		$image_ID = get_user_meta( $user->ID, 'showcase' . $i . '_image', true );
+		$video_url = get_user_meta( $user->ID, 'showcase' . $i . '_video', true );
+		$showcase_text = get_user_meta( $user->ID, 'showcase' . $i . '_text', true );
+		$file_ID = get_user_meta( $user->ID, 'showcase' . $i . '_file', true );
+
+		// check completion of showcase - at least one field must contain content
+		if ( trim($showcase_title) === '' && trim($showcase_text) === '' && intval( $image_ID ) == 0 && intval($file_ID) == 0 && trim($video_url) === '') {
+			$complete["sc" . $i] = false;
+		} else {
+			$complete["sc" . $i] = true;
+		}
+
+		$full_text["sc" . $i] = sprintf( '<div class="showcase" id="showcase-%d"><h3>%s</h3>', $i, $showcase_title );
 		$showcase_thumb_url = $showcase_embed = false;
 		if ( intval( $image_ID ) > 0 ) {
 			$showcase_thumb = wp_get_attachment_image_src( $image_ID, 'thumbnail' );
@@ -110,7 +133,7 @@ if (have_posts()) : while (have_posts()) : the_post();
 				$showcase_embed = sprintf('<img class="showcase-large" src="%s">', $showcase_large[0]);
 			}
 		}
-		$video_url = get_user_meta( $user->ID, 'showcase' . $i . '_video', true );
+		
 		if ( $video_url !== '' ) {
 			if ( preg_match( '%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i', $video_url, $match ) ) {
 				$video_id = $match[1];
@@ -142,8 +165,8 @@ if (have_posts()) : while (have_posts()) : the_post();
 		if ( $showcase_embed ) {
 			$full_text["sc" . $i] .= $showcase_embed;
 		}
-		$full_text["sc" . $i] .= apply_filters( 'the_content', get_user_meta( $user->ID, 'showcase' . $i . '_text', true ) );
-		$file_ID = get_user_meta( $user->ID, 'showcase' . $i . '_file', true );
+		$full_text["sc" . $i] .= apply_filters( 'the_content', $showcase_text );
+		
 		if ( intval( $file_ID ) > 0 ) {
 			$file_url = wp_get_attachment_url( $file_ID );
 			if ( $file_url ) {
@@ -156,12 +179,20 @@ if (have_posts()) : while (have_posts()) : the_post();
 		}
 		$full_text["sc" . $i] .= '</div>';
 		if ($showcase_thumb_url) {
-			printf('<div class="showcase-thumb" id="showcase_thumb%d"><img src="%s"><a class="profile-button showcase-button" href="#showcase-%d" rel="showcase">More</a></div>', $i, $showcase_thumb_url, $i);
+			$thumbs .= sprintf('<div class="showcase-thumb" id="showcase_thumb%d"><img src="%s"><a class="profile-button showcase-button" href="#showcase-%d" rel="showcase">More</a></div>', $i, $showcase_thumb_url, $i);
 		}
 	}
-	print('</div></div>');
-	foreach ( $full_text as $sc ) {
-		print($sc);
+	if ( $thumbs !== '' ) {
+		print('<h2 class="showcase-title">Student Creative/Analytical Showcase</h2>');
+		print('<div class="showcase-thumbs">');
+		print($thumbs);
+		print('</div>');
+	}
+	print('</div>');
+	foreach ( $full_text as $key => $sc ) {
+		if ( $complete[$key] ) {
+			print($sc);
+		}
 	}
 	print( '</div>' );
 endwhile;

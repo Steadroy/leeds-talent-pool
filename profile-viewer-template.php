@@ -33,7 +33,10 @@ ltp_data::save_actions();
 get_header();
 
 print('<div class="section sticky toolbar">');
-print( ltp_template::wpp_toolbar() );
+global $current_user;
+$last_login_date = ltp_data::get_previous_login($current_user->ID);
+$profiles_modified = ltp_data::get_profiles_modified_since($last_login_date);
+print( ltp_template::wpp_toolbar( $current_user->ID, $last_login_date, $profiles_modified ) );
 print('</div>');
 
 print('<div class="ltp-profiles">');
@@ -56,20 +59,29 @@ if ( count( $people_pages ) ) {
 	// apply filters on $students to see which pages are to be displayed
 	//$to_display = apply_filters( 'ltp_results', $students );
 	$count = 0;
+
 	// loop through people pages displaying users
 	foreach ( $people_pages as $post ) {
 		$username = get_post_meta($post->ID, 'wp_username', true);
 		if ( in_array( $username, array_keys( $students ) ) ) {
 			// display user data
 			if ( trim( $students[$username]["firstname"] ) !== '' && trim( $students[$username]["surname"] ) !== '' ) {
-				$left = ( $count % 2 === 0 );
-				print( ltp_template::get_vcard( $students[$username], $post->ID, $left ) );
+				$latest = false;
+				foreach( $profiles_modified as $newprofile ) {
+					if ( $post->ID == $newprofile->ID ) {
+						$latest = true;
+					}
+				}
+				print( ltp_template::get_vcard( $students[$username], $post->ID, $latest ) );
 				$count++;
 			}
 		}
 	}
+	print('</div>');
+	// no profiles messages
+	print('<p class="message" id="no-saved-profiles">No profiles have been saved</p>');
+	print('<p class="message" id="no-filtered-profiles">No profiles match your search criteria</p>');
 } else {
 	print('<p>No profiles have been added to the system yet - please try again later&hellip;</p>');
 }
-print('</div>');
 get_footer();

@@ -19,13 +19,15 @@
     "test",
     "tests"
   ],
-  "dependencies": {
+  "devDependencies": {
     "jquery-sticky": "garand/sticky#~1.0.1",
     "people-post-type": "essl-pvac/people-post-type",
     "uol-wordpress-theme": "essl-pvac/uol-wordpress-theme#master",
     "jScrollPane": "vitch/jScrollPane#~2.0.20",
     "swipebox": "brutaldesign/swipebox#~1.2.9",
     "jquery-colorbox": "jackmoore/colorbox#~1.5.14",
-    "jquery.cookie": "carhartl/jquery-cookie#~1.4.1"
+    "jquery.cookie": "carhartl/jquery-cookie#~1.4.1",
+    "masonry": "desandro/masonry#~3.3.0",
+    "isotope": "metafizzy/isotope#~2.2.0"
   }
 }

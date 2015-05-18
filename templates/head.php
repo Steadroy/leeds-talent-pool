@@ -16,17 +16,19 @@
 
 
     <link rel="Shortcut Icon" type="image/ico" href="http://www.leeds.ac.uk/site/favicon.ico" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0">
+    
     
 	<?php uol_meta(); ?>
 
     <!-- site styles -->
-    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
     
     <!-- dynamic styles -->
-    <?php //echo uol_get_dynamic_styles(); ?>
+    <?php echo uol_get_dynamic_styles(); ?>
 
     <!-- dynamic scripts -->
-    <?php //echo uol_get_dynamic_scripts(); ?>
+    <?php echo uol_get_dynamic_scripts(); ?>
 
     <?php wp_head(); ?>
     <link rel="stylesheet" href="<?php echo get_stylesheet_uri(); ?>" />

@@ -69,12 +69,16 @@
 	{
 		if ( hasFilters() ) {
 			var filters = $('#profile-filters').data('filters');
-			$('.ltp-profile-wrap').each(function(){
-				var hits = 0;
-				var filterCount = 0;
+			//console.log(filters);
+			$('.ltp-profiles').isotope({filter:function(){
+				//console.log(this.className);
+				//console.log(filters);
+				var hits = 0,
+					toShow = false,
+					filterCount = 0;
 				for (var filter in filters) {
 					filterCount++;
-					var toShow = false;
+					toShow = false;
 					for ( var i = 0; i < filters[filter].length; i++ ) {
 						if ($(this).hasClass(filters[filter][i])) {
 							toShow = true;
@@ -84,29 +88,30 @@
 						hits++;
 					}
 				}
+				//console.log(hits,filterCount);
 				if (hits == filterCount) {
-					$(this).show();
+					return true;
 				} else {
-					$(this).hide();
+					return false;
+				}
+			}});
+			$('.ltp-profiles').isotope('once', 'arrangeComplete', function( filteredItems ) {
+				if ( ! filteredItems.length) {
+					//console.log('no profiles');
+					$('#no-filtered-profiles').show();
 				}
 			});
-			if (!$('.ltp-profile-wrap:visible').length) {
-				$('.ltp-profiles').append('<p class="message">No profiles match your search criteria</p>');
-			} else {
-				rearrangeProfiles();
-			}
 		}
 	},
 	removeFilters = function()
 	{
 		$('.ltp-profiles p.message').remove();
-		$('.ltp-profile-wrap').show();
-		rearrangeProfiles();
+		$('.ltp-profiles').isotope({filter:'*'});
+		rearrangeProfiles('removeFilters');
 	},
 	loadFilters = function()
 	{
 		var filters = $.cookie('ltp-filters');
-		console.log(filters);
 		if ( typeof(filters) != 'undefined' ) {
 			// uncheck all filters
 			$('#profile-filters :checkbox').prop('checked', false);
@@ -125,11 +130,7 @@
 	hasFilters = function()
 	{
 		var filters = $('#profile-filters').data('filters');
-		//console.log($.isEmptyObject(filters));
-		//console.log(typeof(filters));
-		//console.log(filters);
 		if ( typeof(filters) == 'undefined' || $.isEmptyObject(filters) ) {
-			//console.log('no filters defined');
 			return false;
 		}
 		return true;
@@ -137,6 +138,14 @@
 	hasSaved = function()
 	{
 		if ( $('.ltp-profile-wrap.saved').length ) {
+			return true;
+		} else {
+			return false;
+		}
+	},
+	hasLatest = function()
+	{
+		if ( $('.ltp-profile-wrap.latest').length ) {
 			return true;
 		} else {
 			return false;
@@ -180,33 +189,21 @@
 		$.cookie('ltp-filters', filters, { 'expires': 30 });
 	},
 	// goes through visible profiles assigning 'left' and 'right' classes to them
-	rearrangeProfiles = function()
+	rearrangeProfiles = function(msg)
 	{
-		var count = 0;
-		$('.ltp-profile-wrap:visible').each(function(){
-			if (count % 2 === 0) {
-				$(this).removeClass('right').addClass('left');
-			} else {
-				$(this).removeClass('left').addClass('right');
-			}
-			count++;
-		});
+		//console.log(msg);
+		$('.ltp-profiles').isotope('layout');
 	},
 	showSavedProfiles = function()
 	{
+		$('p.message').hide();
 		if ($('.ltp-profile-wrap.saved').length) {
-			$('.ltp-profile-wrap').each(function(){
-				if ($(this).hasClass('saved')) {
-					$(this).show();
-				} else {
-					$(this).hide();
-				}
-			});
+			$('.ltp-profiles').isotope({filter:'.saved'});
 		} else {
-			$('.ltp-profile-wrap').hide();
-			$('.ltp-profiles').append('<p class="message">No profiles have been saved</p>');
+			$('.ltp-profiles').isotope({filter:'*'});
+			$('#no-saved-profiles').show();
 		}
-		rearrangeProfiles();
+		//rearrangeProfiles('showSavedProfiles');
 		if ( hasFilters() ) {
 			$('#view-all,#view-filtered,#edit-filters').show();
 			$('#view-saved,#apply-filters,#remove-filters,#show-filters').hide();
@@ -214,15 +211,26 @@
 			$('#view-all,#show-filters').show();
 			$('#view-saved,#apply-filters,#remove-filters,#view-filtered,#edit-filters').hide();
 		}
+		if ( hasLatest() ) {
+			$('#view-latest').show();
+		} else {
+			$('#view-latest').hide();
+		}
 		window.location.hash = 'saved';
 		$('#profile-filters').data('showing', 'saved');
 	},
 	showFilteredProfiles = function()
 	{
+		$('p.message').hide();
 		if ( hasSaved() ) {
 			$('#view-saved').show();
 		} else {
 			$('#view-saved').hide();
+		}
+		if ( hasLatest() ) {
+			$('#view-latest').show();
+		} else {
+			$('#view-latest').hide();
 		}
 		if ( hasFilters() ) {
 			applyFilters();
@@ -234,13 +242,44 @@
 			showAllProfiles();
 		}
 	},
+	showLatestProfiles = function()
+	{
+		$('p.message').hide();
+		$('#view-latest').hide();
+		if ( hasLatest() ) {
+			$('.ltp-profiles').isotope({filter:'.latest'});
+		} else {
+			showAllProfiles();
+			return;
+		}
+		if ( hasSaved() ) {
+			$('#view-saved').show();
+		} else {
+			$('#view-saved').hide();
+		}
+		if ( hasFilters() ) {
+			$('#view-filtered,#edit-filters').show();
+			$('#view-all,#remove-filters,#show-filters,#apply-filters').hide();
+		} else {
+			$('#show-filters').show();
+			$('#view-all,#view-filtered,#apply-filters,#edit-filters,#remove-filters').hide();
+		}
+		$('#profile-filters').data('showing', 'latest');
+		window.location.hash = 'latest';
+	},
 	showAllProfiles = function()
 	{
+		$('p.message').hide();
 		removeFilters();
 		if ( hasSaved() ) {
 			$('#view-saved').show();
 		} else {
 			$('#view-saved').hide();
+		}
+		if ( hasLatest() ) {
+			$('#view-latest').show();
+		} else {
+			$('#view-latest').hide();
 		}
 		if ( hasFilters() ) {
 			$('#view-filtered,#edit-filters').show();
@@ -261,12 +300,24 @@
 			case '#filtered':
 				showFilteredProfiles();
 				break;
+			case '#latest':
+				showLatestProfiles();
+				break;
 			default:
 				showAllProfiles();
 				break;
 		}
 
 	};
+
+	$('.ltp-profiles').isotope({
+		itemSelector: '.ltp-profile-wrap',
+		masonry: {
+			columnwidth: function( containerWidth ) {
+				return containerWidth / 3;
+   			}
+   		}
+    });
 
 	// set cookies to store JSON objects
 	$.cookie.json = true;
@@ -360,6 +411,11 @@
 			});
 		});
 
+		$('#cancel-filters').on('click', function(e){
+			e.preventDefault();
+			$('#profile-filters').slideUp();
+		});
+
 		// when a filter is updated, make sure class is applied and current filters displayed
 		$('#profile-filters .checkbox-list').on('click', 'label,input', function(){
 			updateCurrentFilters();
@@ -389,22 +445,32 @@
 			checkCheckboxLists();
 		});
 
+		$('.select-filters-button').on('click', function(e){
+			e.preventDefault();
+			if ($(this).hasClass('all')) {
+				$('#'+$(this).data('selectid')+' :checkbox').prop('checked', true);
+			} else {
+				$('#'+$(this).data('selectid')+' :checkbox').prop('checked', false);
+			}
+			checkCheckboxLists();
+		});
 		// links which toggle display of filter controls
 		$('.show-filter-controls').on('click', function(e){
 			e.preventDefault();
 			$('.show-filter-controls').removeClass('active');
 			$(this).addClass('active');
 			$('.checkbox-list').hide();
-			$($(this).attr('href')).show().jScrollPane({verticalGutter:0});
+			$($(this).attr('href')).show().jScrollPane({verticalGutter:0,autoReinitialise:true});
 			checkCheckboxLists();
 		});
 
-		// save profile from list view via ajax
+		// save / remove profile from list view via ajax
 		$('.ajax-button').on('click', function(e){
 			e.preventDefault();
 			var ajax_action = $(this).data('ajax_action'),
 				profile_page_id = $(this).data('profile_page_id'),
-				user_id = $(this).data('user_id');
+				user_id = $(this).data('user_id'),
+				url = $(this).attr('href');
 			$.post(
 				ppt.ajaxurl,
 				{
@@ -429,13 +495,15 @@
 							$('#view-saved').hide();
 						}
 						if ($('#profile-filters').data('showing') === 'saved') {
-							$('#ltp_profile_wrap_'+data.profile_page_id).hide();
+							$('.ltp-profiles').isotope({filter:'.saved'});
 							if ( ! hasSaved() ) {
-								$('.ltp-profiles').append('<p class="message">No profiles have been saved</p>');
+								$('#no-saved-profiles').show();
 							}
 						}
 					}
-					rearrangeProfiles();
+					if ( url.indexOf('#') === -1 ) {
+						window.location.href = url;
+					}
 				},
 				'json'
 			);
@@ -443,6 +511,34 @@
 		// reload interface when hash changes
 		window.onhashchange = loadProfiles;
 	}
+	// retrieve history via ajax and display in colorbox
+	$(document).on('click', '.history', function(e){
+		e.preventDefault();
+		var start = $(this).data('start'),
+			num = $(this).data('num'),
+			user_id = $(this).data('user_id');
+		$.post(
+			ppt.ajaxurl,
+			{
+				'datanonce': ppt.datanonce,
+				'action': 'ltp_data',
+				'ajax_action': 'history',
+				'start': start,
+				'num': num,
+				'user_id': user_id
+			},
+			function( data, textstatus ) {
+				$.colorbox({
+					html:data.result,
+					width:'90%',
+					maxWidth:'540px',
+					height:'80%',
+					maxHeight:'500px'
+				});
+			},
+			'json'
+		);
+	});
 	$('.sticky').sticky();
 	$('.showcase-button').colorbox({
 		inline:true,
