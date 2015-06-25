@@ -77,8 +77,7 @@ if ( ! class_exists( 'ltp_template' ) ) {
 				"desired_region",
 				"expertise"
 			);
-			//$vcard = '<pre>' . print_r($student, true) . '</pre>';
-			$classes = $latest? "latest": "";
+			$classes = $latest? "latest ": "";
 			foreach ( $filter_attr as $att ) {
 				if ( isset( $student[$att] ) && is_array( $student[$att] ) && count( $student[$att] ) ) {
 					foreach ( $student[$att]  as $val ) {
@@ -118,7 +117,7 @@ if ( ! class_exists( 'ltp_template' ) ) {
 				$cv_url = wp_get_attachment_url( $student['cv'] );
 			}
 			if ( ltp_is_wpp() ) {
-				$vcard .= self::wpp_profile_buttons( $current_user->ID, $page_id );
+				$vcard .= self::wpp_profile_buttons( $current_user->ID, $page_id, $cv_url );
 			}
 			$vcard .= '</div></div>';
 			return $vcard;
@@ -156,7 +155,9 @@ if ( ! class_exists( 'ltp_template' ) ) {
 		 */
 		public static function wpp_profile_toolbar( $user_id, $profile_page_id, $cv_URL = false )
 		{
-			$toolbar = self::get_status_line( $user_id );
+			$last_login_date = ltp_data::get_previous_login($user_id);
+			$profiles_added = ltp_data::get_profiles_added_since($last_login_date);
+			$toolbar = self::get_status_line( $user_id, $last_login_date, $profiles_added );
 			$saved_profiles = ltp_data::has_saved( $user_id );
 			$toolbar .= sprintf('<form action="%s" method="post" class="toolbar-buttons">', $_SERVER["REQUEST_URI"] );
 			$toolbar .= sprintf('<input type="hidden" name="user_id" value="%s">', $user_id );
@@ -181,33 +182,38 @@ if ( ! class_exists( 'ltp_template' ) ) {
 		/**
 		 * gets a status line for the WPP toolbar
 		 */
-		public static function get_status_line( $user_id, $last_login_date, $profiles_modified )
+		public static function get_status_line( $user_id, $last_login_date, $profiles_added )
 		{
 			$added_profiles = '';
 			if ( $last_login_date == false ) {
 				$last_login = "never";
 			} else {
 				$last_login = date('l jS \of F Y, H:i', $last_login_date);
-				if ( count( $profiles_modified ) ) {
-					$added_profiles = sprintf(' | Profiles uodated since your last login: <strong>%s</strong>', count( $profiles_modified ) );
+				if ( count( $profiles_added ) ) {
+					$added_profiles = sprintf(' | Profiles updated since your last login: <strong>%s</strong>', count( $profiles_added ) );
+				} else {
+					$added_profiles = ' | No profiles added since you last logged in';
 				}
 			}
 			$history_link = ltp_data::user_has_history( $user_id )? ' | <a href="#" class="history" data-start="0" data-num="20" data-user_id="' . $user_id . '">History</a>': '';
-			return sprintf('<div class="status">Last login: %s%s</div>', $last_login, $history_link, $added_profiles);
+			return sprintf('<div class="status">Last login: %s%s%s</div>', $last_login, $history_link, $added_profiles);
 		}
 
 		/**
 		 * returns a set of buttons used on individual profiles in list view to enable saving
 		 * and removing profiles via ajax
 		 */
-		public static function wpp_profile_buttons( $user_id, $profile_page_id )
+		public static function wpp_profile_buttons( $user_id, $profile_page_id, $cv_url = false )
 		{
 			$data_attr = sprintf(' data-user_id="%s" data-profile_page_id="%s"', $user_id, $profile_page_id);
-			$buttons = sprintf('<a class="profile-button ajax-button" data-ajax_action="view" href="%s"%s>View Profile</a>', get_permalink( $profile_page_id ), $data_attr );
+			$buttons = sprintf('<a class="profile-button ajax-button" data-ajax_action="view" href="#" data-linkurl="%s"%s>View Profile</a>', get_permalink( $profile_page_id ), $data_attr );
 			if ( ltp_data::is_saved( $user_id, $profile_page_id ) ) {
 				$buttons .= sprintf('<a href="#" id="save_%s" data-ajax_action="remove" class="profile-button ajax-button"%s>Remove</a>', $profile_page_id, $data_attr);
 			} else {
 				$buttons .= sprintf('<a href="#" id="save_%s" data-ajax_action="save" class="profile-button ajax-button"%s>Save</a>', $profile_page_id, $data_attr);
+			}
+			if ( $cv_url ) {
+				$buttons .= sprintf('<a href="#" id="download_%s" data-ajax_action="cv_download" class="profile-button ajax-button" data-linkurl="%s"%s>CV</a>', $profile_page_id, $cv_url, $data_attr);
 			}
 			return $buttons;
 		}

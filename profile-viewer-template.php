@@ -34,9 +34,9 @@ get_header();
 
 print('<div class="section sticky toolbar">');
 global $current_user;
-$last_login_date = ltp_data::get_previous_login($current_user->ID);
-$profiles_modified = ltp_data::get_profiles_modified_since($last_login_date);
-print( ltp_template::wpp_toolbar( $current_user->ID, $last_login_date, $profiles_modified ) );
+$previous_login_date = ltp_data::get_previous_login($current_user->ID);
+$profiles_added = ltp_data::get_profiles_added_since($previous_login_date);
+print( ltp_template::wpp_toolbar( $current_user->ID, $previous_login_date, $profiles_added ) );
 print('</div>');
 
 print('<div class="ltp-profiles">');
@@ -67,9 +67,10 @@ if ( count( $people_pages ) ) {
 			// display user data
 			if ( trim( $students[$username]["firstname"] ) !== '' && trim( $students[$username]["surname"] ) !== '' ) {
 				$latest = false;
-				foreach( $profiles_modified as $newprofile ) {
+				foreach( $profiles_added as $newprofile ) {
 					if ( $post->ID == $newprofile->ID ) {
 						$latest = true;
+						break;
 					}
 				}
 				print( ltp_template::get_vcard( $students[$username], $post->ID, $latest ) );

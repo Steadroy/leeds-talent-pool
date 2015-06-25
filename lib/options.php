@@ -116,9 +116,24 @@ if ( ! class_exists( 'ltp_options' ) ) {
 			if ( ! current_user_can( 'list_users' ) ) {
 				wp_die('You do not have sufficient permissions to access this page.');
 			}
-			
+			/* perform any actions sent by the table */
+			if ( isset( $_REQUEST["bulk_action_form_nonce"] ) && wp_verify_nonce( $_REQUEST["bulk_action_form_nonce"], "bulk_action_form" ) ) {
+				/* bulk actions to delete or disable users */
+				//print('<pre>' . print_r($_REQUEST, true) . '</pre>');
+			}
+			if ( isset( $_REQUEST["wpp_user_nonce"] ) ) {
+				if ( wp_verify_nonce( $_REQUEST["wpp_user_nonce"], "wpp_disable_action" ) ) {
+					/* dis page */
+					//print('<pre>' . print_r($_REQUEST, true) . '</pre>');
+				}
+				if ( wp_verify_nonce( $_REQUEST["wpp_user_nonce"], "wpp_delete_action" ) ) {
+					/* unpublish student page */
+					//print('<pre>' . print_r($_REQUEST, true) . '</pre>');
+				}
+			}
+		
 			print('<form method="post">');
-			wp_nonce_field('disable_form', 'disable_form_nonce', true, true);
+			wp_nonce_field('bulk_action_form', 'bulk_action_form_nonce', true, true);
 			$table = new ltp_WPP_List_Table();
 			$table->prepare_items(); 
 			$table->search_box( 'search', 'search_wpp' );
@@ -128,138 +143,35 @@ if ( ! class_exists( 'ltp_options' ) ) {
 
 		public static function ltp_students_admin_page()
 		{
-
-   			/* get people pages */
-			$people_pages = get_posts(array(
-				'post_type' => 'people',
-				'numberposts' => -1,
-				'nopaging' => true,
-				'status' => 'any'
-			));
-
-			/* map people page IDs to usernames */
-			$pages_map = array();
-			foreach ($people_pages as $pp) {
-				$wp_username = get_post_meta($pp->ID, 'wp_username', true);
-				if ($wp_username) {
-					$pages_map[$wp_username] = $pp;
+			print('<div class="wrap"><h2>Students</h2>');
+			if ( ! current_user_can( 'list_users' ) ) {
+				wp_die('You do not have sufficient permissions to access this page.');
+			}
+			/* perform any actions sent by the table */
+			if ( isset( $_REQUEST["bulk_action_form_nonce"] ) && wp_verify_nonce( $_REQUEST["bulk_action_form_nonce"], "bulk_action_form" ) ) {
+				/* bulk actions to unpublish or publish user profile pages */
+				//print('<pre>' . print_r($_REQUEST, true) . '</pre>');
+			}
+			if ( isset( $_REQUEST["student_nonce"] ) ) {
+				/* publish/unpublish individual profiles */
+				if ( wp_verify_nonce( $_REQUEST["student_nonce"], "student_unpublish_action" ) ) {
+					/* unpublish student page */
+					//print('<pre>' . print_r($_REQUEST, true) . '</pre>');
+				}
+				if ( wp_verify_nonce( $_REQUEST["student_nonce"], "student_publish_action" ) ) {
+					/* publish student page */
+					//print('<pre>' . print_r($_REQUEST, true) . '</pre>');
 				}
 			}
-
-			$wpp_users = array();
-			$student_users = array();
-
-			foreach ($users as $user) {
-				if ( ! $user->has_cap( 'administrator' ) ) {
-					if ( $user->has_cap( 'wppuser' ) ) {
-						$wpp_users[] = $user;
-					}
-					if ( $user->has_cap( 'student' ) ) {
-						$student_users[] = $user;
-					}
-				}
-			}
-			$summary = ltp_data::get_summary_data();
-
-
-			if ( count( $student_users ) ) {
-				print('<h2>Students</h2><table class="widefat">');
-				print('<thead><tr><th>Name</th><th>Logged in?</th><th>Page published?</th><th>CV</th><th>Showcases</th><th>Views</th></tr></thead><tbody>');
-				foreach ($student_users as $user) {
-					// get the user data
-					$userdata = ltp_template::get_user_data($user);
-
-					print('<tr class="person-row">');
-
-					// link name to page if available
-					$userID = $user->data->ID;
-					if ( ! isset($pages_map[$user->data->user_login])) {
-						printf('<td>%s</td>', $user->data->display_name);
-						$logged_in = false;
-					} else {
-						printf('<td><a href="%s">%s</a></td>', get_permalink($pages_map[$user->data->user_login]->ID), $user->data->display_name);
-						$logged_in = true;
-					}
-					// has the user logged in?
-					if ( ! $logged_in ) {
-						$class = ' class="empty"';
-						$text = "No";
-					} else {
-						$class = '';
-						$text = "Yes";
-					}
-					printf('<td%s>%s</td>', $class, $text );
-
-					// is the user profile page published?
-					if ( $logged_in && isset( $pages_map[$user->data->user_login]) && $pages_map[$user->data->user_login]->post_status == 'publish' ) {
-						$class = '';
-						$text = "Yes";
-						$has_page = true;
-					} else {
-						$class = ' class="empty"';
-						$text = "No";
-						$has_page = true;
-					}
-					printf('<td%s>%s</td>', $class, $text );
-
-					// has a cv been uploaded?
-					if ( $logged_in && ! empty( $userdata["cv"] ) ) {
-						$class = '';
-						$text = "Yes";
-						if ( isset( $pages_map[$user->data->user_login]) ) {
-							$downloads = ltp_data::get_downloads($pages_map[$user->data->user_login]->ID);
-							if ( $downloads ) {
-								$text .= ( $downloads > 1 )? "(downloaded " . $downloads . " times)": "(downloaded once)";
-							}
-						}
-					} else {
-						$class = ' class="empty"';
-						$text = "No";
-					}
-					printf('<td%s>%s</td>', $class, $text );
-
-					// how many showcases have been added?
-					if ( $logged_in ) {
-						$showcase_count = 0;
-						for ( $i = 1; $i < 4; $i++ ) {
-							if ( trim( $userdata["showcase" . $i . "_title"] ) !== '' || trim( $userdata["showcase" . $i . "_text"] ) !== '' || trim( $userdata["showcase" . $i . "_image"] ) !== '' || trim( $userdata["showcase" . $i . "_file"] ) !== '' || trim( $userdata["showcase" . $i . "_video"] ) !== '' ) {
-								$showcase_count++;
-							}
-						}
-						if ( $showcase_count > 0 ) {
-							$class = '';
-							$text = "Yes (" . $showcase_count . ")";
-						} else {
-							$class = ' class="empty"';
-							$text = "None";
-						}
-					} else {
-						$class = ' class="empty"';
-						$text = "None";
-					}
-					printf('<td%s>%s</td>', $class, $text );
-
-					// how many times has the profile been viewed?
-					if ( $logged_in ) {
-						$class = '';
-						$text = "Yes";
-						$views = ltp_data::get_views($pages_map[$user->data->user_login]->ID);
-						if ( $views ) {
-							$text = ( $views > 0 )? $views: "";
-						}
-					} else {
-						$class = ' class="empty"';
-						$text = "None";
-					}
-					printf('<td%s>%s</td>', $class, $text );
-					print('</tr>');
-				}
-				print('</tbody></table>');
-			}
-			print('</div>');
+			
+			print('<form method="post">');
+			wp_nonce_field('bulk_action_form', 'bulk_action_form_nonce', true, true);
+			$table = new ltp_Student_List_Table();
+			$table->prepare_items(); 
+			$table->search_box( 'search', 'search_students' );
+			$table->display(); 
+			print('</form></div>');
 		}
-
-
 
 		/**
 		 * registers settings and sections
@@ -520,7 +432,7 @@ class ltp_WPP_List_Table extends WP_List_Table {
     	    case 'last_name':
         	case 'first_name':
         	case 'user_login':
-        	case 'user_email';
+        	case 'user_email':
         	case 'last_login':
         	case 'saved_profiles':
         	case 'view_count':
@@ -554,7 +466,7 @@ class ltp_WPP_List_Table extends WP_List_Table {
          return $columns;
     }
 
-	function column_username($item)
+	function column_user_login($item)
 	{
   		$actions = array(
             'edit' => sprintf('<a href="%s?user_id=%d" title="Edit Profile">Edit</a>', admin_url('user-edit.php'), $item["ID"])
@@ -565,7 +477,8 @@ class ltp_WPP_List_Table extends WP_List_Table {
 	function get_bulk_actions()
 	{
 		$actions = array(
-			'disable_users' => 'Disable'
+			'disable_users' => 'Disable',
+			'delete_users' => 'Delete'
 		);
 		return $actions;
 	}
@@ -683,3 +596,233 @@ class ltp_WPP_List_Table extends WP_List_Table {
 	}
 }
 
+/**
+ * class to extend WP_List_Table to display WPP users
+ */
+class ltp_Student_List_Table extends WP_List_Table {
+
+    function __construct()
+    {
+        parent::__construct( array(
+            'singular'  => 'Student',
+            'plural'    => 'Students',
+            'ajax'      => false
+	    ) );
+	}
+
+	function no_items()
+	{
+		echo 'No Students found.';
+	}
+
+	function column_default( $item, $column_name )
+	{
+    	switch( $column_name ) { 
+        	case 'user_login':
+    	    case 'last_name':
+        	case 'first_name':
+        	case 'user_email':
+			case 'profile_status':
+			case 'showcase_count':
+			case 'cv':
+        	case 'profile_views':
+            	return $item[ $column_name ];
+        	default:
+            	return '';
+		}
+	}
+
+	function get_sortable_columns() {
+		$sortable_columns = array(
+			'last_name'    => array( 'last_name', true ),
+			'first_name' => array( 'first_name', false ),
+			'user_login'   => array( 'user_login', false ),
+			'user_email'      => array( 'user_email', false )
+		);
+		return $sortable_columns;
+	}
+
+	function get_columns(){
+        $columns = array(
+            'cb'        => '<input type="checkbox" />',
+			'user_login'   => 'username',
+			'last_name'  => 'Surname',
+			'first_name' => 'First name',
+			'user_email'  => 'email',
+			'profile_status' => 'Profile Status',
+			'showcase_count' => 'Showcases',
+			'cv' => 'CV (downloads)',
+			'profile_views' => "Views"
+        );
+        return $columns;
+    }
+
+	function column_user_login($item)
+	{
+  		$actions = array(
+            'edit' => sprintf('<a href="%s?user_id=%d" title="Edit Profile">Edit</a>', admin_url('user-edit.php'), $item["ID"])
+        );
+        if ( ! empty( $item["profile_url"] ) ) {
+        	$actions['view'] = sprintf('<a href="%s">View</a>', $item["profile_url"] );
+        }
+  		if ( $item["profile_status"] == "Published" ) {
+  			$actions['unpublish'] = sprintf('<a href="%s">Un-publish</a>', wp_nonce_url( admin_url('admin.php?page=connect_students&unpublish=' . $item["ID"]), 'student_unpublish_action', 'student_nonce') );
+  		} else if ( $item["profile_status"] == "Draft" ) {
+  			$actions['publish'] = sprintf('<a href="%s">Publish</a>', wp_nonce_url( admin_url('admin.php?page=connect_students&publish=' . $item["ID"]), 'student_publish_action', 'student_nonce') );
+        }
+		return sprintf('%s %s', $item['user_login'], $this->row_actions($actions) );
+	}
+
+	function column_cv($item)
+	{
+		if ( $item["cv_uploaded"] ) {
+			return sprintf('Yes (%d)', $item["downloads_count"] );
+		} else {
+			return "No";
+		}
+	}
+
+	function get_bulk_actions()
+	{
+		$actions = array(
+			'unpublish_profiles' => 'Unpublish',
+			'publish_profiles' => 'Publish'
+		);
+		return $actions;
+	}
+
+	function column_cb($item)
+	{
+        return sprintf( '<input type="checkbox" name="selection[]" value="%s" />', $item['ID'] );    
+    }
+
+	function prepare_items()
+	{
+		/* set up the columns */
+		$columns  = $this->get_columns();
+		$hidden   = array();
+		$sortable = $this->get_sortable_columns();
+		$this->_column_headers = array( $columns, $hidden, $sortable );
+
+		/* set paging parameters */
+		$per_page = ltp_options::get_admin_per_page( 'ltp_student_users_pp' );
+		$current_page = $this->get_pagenum();
+		$offset = ( ( $current_page - 1 ) * $per_page );
+
+		/* set ordering parameters */
+		$poss_orderby = array( 'first_name', 'last_name', 'user_login', 'user_email' );
+		$orderby = ( isset( $_REQUEST["orderby"] ) && in_array( $_REQUEST["orderby"], $poss_orderby ) ) ? $_REQUEST["orderby"]: 'last_name';
+		$order = ( isset( $_REQUEST["order"] ) && in_array( strtoupper($_REQUEST["order"]), array( 'ASC', 'DESC' ) ) ) ? strtoupper($_REQUEST["order"]): 'ASC';
+
+		$searchterm = ( isset( $_REQUEST["s"] ) && trim( $_REQUEST["s"] ) !== '' ) ? trim( $_REQUEST["s"] ): '';
+
+		/* build arguments to user query */
+		$args = array(
+			'role' => 'student',
+			'number' => $per_page,
+			'offset' => $offset,
+			'fields' => 'all_with_meta',
+			'count_total' => true
+		);
+		if ( $searchterm !== '' ) {
+			$args['meta_query'] = array(
+        		'relation' => 'OR',
+        		array(
+            		'key'     => 'first_name',
+            		'value'   => $searchterm,
+            		'compare' => 'LIKE'
+        		),
+        		array(
+            		'key'     => 'last_name',
+            		'value'   => $searchterm,
+            		'compare' => 'LIKE'
+        		)
+    		);
+    	}
+
+		if ( $orderby ) {
+			switch ( $orderby ) {
+				case 'first_name':
+				case 'last_name':
+					$args['orderby'] = 'meta_value';
+					$args['meta_key'] = $orderby;
+					break;
+				default:
+					$args['orderby'] = $orderby;
+			}
+			$args['order'] = $order;
+		}
+
+		/* query users */
+		$user_query = new WP_User_Query( $args );
+		/* get total users */
+		$total_items = $user_query->get_total();
+		/* get results */
+		$wpp_users = $user_query->get_results();
+		
+		/* get additional data */
+		/* get people pages */
+		$people_pages = get_posts(array(
+			'post_type' => 'people',
+			'numberposts' => -1,
+			'nopaging' => true,
+			'post_status' => 'any'
+		));
+
+		/* map people page IDs to usernames */
+		$pages_map = array();
+		foreach ($people_pages as $pp) {
+			$wp_username = get_post_meta($pp->ID, 'wp_username', true);
+			if ($wp_username) {
+				$pages_map[$wp_username] = $pp;
+			}
+		}
+
+		/* build items for table */
+		$this->items = array();
+		if ( ! empty( $user_query->results ) ) {
+			foreach ($user_query->results as $user) {
+				$userdata = ltp_template::get_user_data($user);
+				$student_user = array();
+				$student_user["ID"] = $user->ID;
+				$student_user["first_name"] = $user->first_name;
+				$student_user["last_name"] = $user->last_name;
+				$student_user["user_login"] = $user->user_login;
+				$student_user["user_email"] = $user->user_email;
+				$student_user["showcase_count"] = 0;
+				$student_user["downloads_count"] = 0;
+				$student_user["cv_uploaded"] = false;
+				$student_user["profile_url"] = '';
+				$student_user["profile_views"] = 0;
+
+				/* get data related to profile publishing status */
+				if ( ! isset( $pages_map[$user->user_login] ) ) {
+					$student_user["profile_status"] = "Not started";
+				} else {
+					/* find out how much has been done on the profile */
+					for ( $i = 1; $i < 4; $i++ ) {
+						if ( trim( $userdata["showcase" . $i . "_title"] ) !== '' || trim( $userdata["showcase" . $i . "_text"] ) !== '' || trim( $userdata["showcase" . $i . "_image"] ) !== '' || trim( $userdata["showcase" . $i . "_file"] ) !== '' || trim( $userdata["showcase" . $i . "_video"] ) !== '' ) {
+							$student_user["showcase_count"]++;
+						}
+					}
+					if ( ! empty( $userdata["cv"] ) ) {
+						$student_user["cv_uploaded"] = true;
+						$student_user["downloads_count"] = ltp_data::get_downloads($pages_map[$user->user_login]->ID);
+					}
+
+					/* set status, view count and URL */
+					if ( $pages_map[$user->user_login]->post_status == "publish" ) {
+						$student_user["profile_status"] = "Published";
+						$student_user["profile_url"] = get_permalink($pages_map[$user->user_login]->ID);
+					} else {
+						$student_user["profile_status"] = "Draft";
+					}
+					$student_user["profile_views"] = ltp_data::get_views($pages_map[$user->user_login]->ID);
+				}
+				//print('<pre>' . print_r($student_user, true) . '</pre>');
+				array_push( $this->items, $student_user );
+			}
+		}
+
+	}
+}

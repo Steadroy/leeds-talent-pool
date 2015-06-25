@@ -409,7 +409,7 @@ if ( ! class_exists( 'ltp_data' ) ) {
 		}
 
 		/********************************************************
-		 * Methods to get data for WPP page footer              *
+		 * Methods to get data for WPP page status line         *
 		 ********************************************************/
 
 		/**
@@ -454,7 +454,7 @@ if ( ! class_exists( 'ltp_data' ) ) {
 		/**
 		 * gets the profiles added since a given date
 		 */
-		public static function get_profiles_modified_since( $timestamp = false )
+		public static function get_profiles_added_since( $timestamp = false )
 		{
 			if ( ! $timestamp ) {
 				$timestamp = time();
@@ -490,7 +490,7 @@ if ( ! class_exists( 'ltp_data' ) ) {
 			if ( $user_id ) {
 				global $wpdb;
 				$tablename = self::get_data_tablename();
-				return $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) FROM $tablename WHERE `user_id` = %d and `entry_type` IN('view','saved','removed','cv-download');", $user_id ) );
+				return $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) FROM $tablename WHERE `user_id` = %d and `entry_type` IN('view','saved','removed','cv_download');", $user_id ) );
 			}
 		}
 
@@ -505,7 +505,7 @@ if ( ! class_exists( 'ltp_data' ) ) {
 				$tablename = self::get_data_tablename();
 				$start = abs(intval($start));
 				$num = intval($num) === 0? 20: abs(intval($num));
-				$history = $wpdb->get_results( $wpdb->prepare("SELECT * FROM $tablename WHERE `user_id` = %d and `entry_type` IN('view','saved','removed','cv-download') ORDER BY `access_time` DESC LIMIT $start, $num;", $user_id ) );
+				$history = $wpdb->get_results( $wpdb->prepare("SELECT * FROM $tablename WHERE `user_id` = %d and `entry_type` IN('view','saved','removed','cv_download') ORDER BY `access_time` DESC LIMIT $start, $num;", $user_id ) );
 				return $history;
 			}
 			return array();
@@ -547,10 +547,16 @@ if ( ! class_exists( 'ltp_data' ) ) {
 						$actions[$datestr][] = $action;
 					}
 					$out .= $nav;
+					$entry_labels = array(
+						'view' => 'View profile',
+						'saved' => "Save profile",
+						'removed' => "Remove saved profile",
+						'cv_download' => "Download CV"
+					);
 					foreach ( $actions as $datestr => $entries ) {
 						$out .= sprintf('<h3>%s</h3><table class="historytable"><thead><tr><th>Profile</th><th>Action</th><th>Time</th></tr></thead><tbody>', date( 'l jS F, Y', $entries[0]->access_time ) );
 						foreach ( $entries as $entry ) {
-							$out .= sprintf('<tr><td><a href="%s">%s</a></td><td>%s</td><td>%s</td></tr>', $entry->profile_url, $entry->profile_title, $entry->entry_type, date( 'g:i:sa', $entry->access_time ) );
+							$out .= sprintf('<tr><td><a href="%s">%s</a></td><td>%s</td><td>%s</td></tr>', $entry->profile_url, $entry->profile_title, $entry_labels[$entry->entry_type], date( 'g:i:sa', $entry->access_time ) );
 						}
 						$out .= '</tbody></table>';
 					}

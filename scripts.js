@@ -7744,12 +7744,13 @@ var getText = docElem.textContent ?
 		} else {
 			$('#view-saved').hide();
 		}
+		$('#view-all').show();
 		if ( hasFilters() ) {
 			$('#view-filtered,#edit-filters').show();
-			$('#view-all,#remove-filters,#show-filters,#apply-filters').hide();
+			$('#remove-filters,#show-filters,#apply-filters').hide();
 		} else {
 			$('#show-filters').show();
-			$('#view-all,#view-filtered,#apply-filters,#edit-filters,#remove-filters').hide();
+			$('#view-filtered,#apply-filters,#edit-filters,#remove-filters').hide();
 		}
 		$('#profile-filters').data('showing', 'latest');
 		window.location.hash = 'latest';
@@ -7939,7 +7940,7 @@ var getText = docElem.textContent ?
 			} else {
 				$('#'+$(this).data('selectid')+' :checkbox').prop('checked', false);
 			}
-			checkCheckboxLists();
+			updateCurrentFilters();
 		});
 		// links which toggle display of filter controls
 		$('.show-filter-controls').on('click', function(e){
@@ -7951,53 +7952,53 @@ var getText = docElem.textContent ?
 			checkCheckboxLists();
 		});
 
-		// save / remove profile from list view via ajax
-		$('.ajax-button').on('click', function(e){
-			e.preventDefault();
-			var ajax_action = $(this).data('ajax_action'),
-				profile_page_id = $(this).data('profile_page_id'),
-				user_id = $(this).data('user_id'),
-				url = $(this).attr('href');
-			$.post(
-				ppt.ajaxurl,
-				{
-					'datanonce': ppt.datanonce,
-					'action': 'ltp_data',
-					'ajax_action': ajax_action,
-					'profile_page_id': profile_page_id,
-					'user_id': user_id
-				},
-				function( data, textstatus ) {
-					if ( data.ajax_action === 'save' && data.result ) {
-						$('#save_'+data.profile_page_id).text('Remove');
-						$('#save_'+data.profile_page_id).data('ajax_action', 'remove');
-						$('#ltp_profile_wrap_'+data.profile_page_id).addClass('saved');
-						$('#view-saved').show();
-					}
-					if ( data.ajax_action === 'remove' ) {
-						$('#save_'+data.profile_page_id).text('Save');
-						$('#save_'+data.profile_page_id).data('ajax_action', 'save');
-						$('#ltp_profile_wrap_'+data.profile_page_id).removeClass('saved');
-						if ( ! hasSaved() ) {
-							$('#view-saved').hide();
-						}
-						if ($('#profile-filters').data('showing') === 'saved') {
-							$('.ltp-profiles').isotope({filter:'.saved'});
-							if ( ! hasSaved() ) {
-								$('#no-saved-profiles').show();
-							}
-						}
-					}
-					if ( url.indexOf('#') === -1 ) {
-						window.location.href = url;
-					}
-				},
-				'json'
-			);
-		});
 		// reload interface when hash changes
 		window.onhashchange = loadProfiles;
 	}
+	// save / remove / view / download CV via ajax
+	$('.ajax-button').on('click', function(e){
+		e.preventDefault();
+		var ajax_action = $(this).data('ajax_action'),
+			profile_page_id = $(this).data('profile_page_id'),
+			user_id = $(this).data('user_id'),
+			url = $(this).data('linkurl');
+		$.post(
+			ppt.ajaxurl,
+			{
+				'datanonce': ppt.datanonce,
+				'action': 'ltp_data',
+				'ajax_action': ajax_action,
+				'profile_page_id': profile_page_id,
+				'user_id': user_id
+			},
+			function( data, textstatus ) {
+				if ( data.ajax_action === 'save' && data.result ) {
+					$('#save_'+data.profile_page_id).text('Remove');
+					$('#save_'+data.profile_page_id).data('ajax_action', 'remove');
+					$('#ltp_profile_wrap_'+data.profile_page_id).addClass('saved');
+					$('#view-saved').show();
+				}
+				if ( data.ajax_action === 'remove' ) {
+					$('#save_'+data.profile_page_id).text('Save');
+					$('#save_'+data.profile_page_id).data('ajax_action', 'save');
+					$('#ltp_profile_wrap_'+data.profile_page_id).removeClass('saved');
+					if ( ! hasSaved() ) {
+						$('#view-saved').hide();
+					}
+					if ($('#profile-filters').data('showing') === 'saved') {
+						$('.ltp-profiles').isotope({filter:'.saved'});
+						if ( ! hasSaved() ) {
+							$('#no-saved-profiles').show();
+						}
+					}
+				}
+				if ( url ) {
+					window.location.href = url;
+				}
+			},
+			'json'
+		);
+	});
 	// retrieve history via ajax and display in colorbox
 	$(document).on('click', '.history', function(e){
 		e.preventDefault();

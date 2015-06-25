@@ -34,11 +34,6 @@ if (have_posts()) : while (have_posts()) : the_post();
 	}
 	$options = ltp_options::get_options();
 
-	// log view if wpp user
-	if ( ltp_is_wpp() ) {
-		//ltp_data::log_view($current_user->ID, $post->ID);
-	}
-
 	/* start profile output */
 	print('<div class="ltp-profile-viewer">');
 
@@ -52,7 +47,7 @@ if (have_posts()) : while (have_posts()) : the_post();
 	print('<div class="section sticky toolbar">');
 	if ( ltp_is_wpp() ) {
 		// WPP users toolbar
-		print( ltp_template::wpp_profile_toolbar( $current_user->ID, $post->ID ) );
+		print( ltp_template::wpp_profile_toolbar( $current_user->ID, $post->ID, $cv_URL ) );
 	} elseif ( $current_user->ID == $user->ID ) {
 		// student toolbar
 		printf( '<div class="status">Profile views: %d | Profile saves: %d | CV downloads: %d</div>', ltp_data::get_views($post->ID), ltp_data::get_saves($post->ID), ltp_data::get_downloads($post->ID) );
@@ -99,8 +94,8 @@ if (have_posts()) : while (have_posts()) : the_post();
 	if ( is_array($expertise) && count($expertise) && $expertise[0] !== 'null' ) {
 		printf('<p><strong>Expertise:</strong> %s</p>', implode(", ", $expertise ) );
 	}
-	if ( ! ltp_is_wpp() && ! empty( $cv_URL ) ) {
-		printf('<p><a href="%s" class="profile-button">Download CV</a></p>', $cv_URL );
+	if ( ! empty( $cv_URL ) ) {
+		printf('<p><a href="#" data-ajax_action="cv_download" class="profile-button ajax-button" data-linkurl="%s" data-user_id="%s" data-profile_page_id="%s">Download CV</a></p>', $cv_URL, $user->ID, $post->ID );
 	}
 	print('</div>');
 	print( apply_filters('the_content', get_user_meta( $user->ID, 'statement', true ) ) );
